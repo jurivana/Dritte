@@ -1,0 +1,15 @@
+{
+  "restoreTerminals.terminals": [
+    {
+      "splitTerminals": [
+        {
+          "commands": ["ng s"],
+          "name": "Server"
+        },
+        {
+          "name": "Terminal"
+        }
+      ]
+    }
+  ]
+}
