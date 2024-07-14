@@ -1,6 +1,6 @@
-<div class="h-screen flex flex-col">
+<div class="flex flex-col">
   <div class="flex flex-row justify-between items-center m-4">
-    <img src="assets/icons/svv_white.png" id="svv" alt="SVV Logo" class="h-10 cursor-pointer" routerLink="/"/>
+    <img src="assets/icons/svv_white.png" id="svv" alt="SVV Logo" class="h-10 cursor-pointer" routerLink="/" />
     @if (authService.isLoggedIn$ | async) {
       <button class="btn btn-circle" (click)="authService.logout()">
         <i class="fas fa-right-from-bracket"></i>

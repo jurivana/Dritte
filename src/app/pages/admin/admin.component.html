@@ -151,8 +151,8 @@
       </div>
 
       <!-- ? ÜBERSICHT -->
-      <div class="max-w-full overflow-x-auto h-[calc(100dvh-4rem)] min-h-[500px] w-[800px]">
-        <table class="table table-zebra table-fixed table-pin-rows table-pin-cols">
+      <div class="max-w-full w-[800px]">
+        <table class="table table-zebra table-fixed table-pin-rows">
           <thead>
             <tr>
               <th class="w-24 sm:w-20">Name</th>
@@ -206,7 +206,7 @@
           </div>
           <div class="form-control flex-1">
             <label class="label"><span class="label-text">Datum</span></label>
-            <input type="date" class="input input-bordered !outline-none text-sm" formControlName="date" />
+            <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
           </div>
         </div>
         @if (paymentForm.value.from === "misc" || paymentForm.value.id) {
@@ -215,6 +215,7 @@
             class="input input-bordered !outline-none"
             formControlName="title"
             [readOnly]="paymentForm.value.id && paymentForm.value.from === 'player'"
+            (focus)="select($event)"
           />
         } @else {
           <select class="select select-bordered !outline-none" formControlName="playerId" (change)="playerChanged()">
@@ -239,6 +240,7 @@
             class="input input-bordered !outline-none text-end"
             formControlName="value"
             [readOnly]="paymentForm.value.id && paymentForm.value.from === 'player'"
+            (focus)="select($event)"
           />
         </div>
       </div>
@@ -287,11 +289,16 @@
           </div>
           <div class="form-control flex-1">
             <label class="label"><span class="label-text">Datum</span></label>
-            <input type="date" class="input input-bordered !outline-none text-sm" formControlName="date" />
+            <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
           </div>
         </div>
         @if (feeForm.value.type === "misc") {
-          <input type="text" class="input input-bordered !outline-none" formControlName="comment" />
+          <input
+            type="text"
+            class="input input-bordered !outline-none"
+            formControlName="comment"
+            (focus)="select($event)"
+          />
         } @else if (feeForm.value.type === "fine") {
           <select
             class="select select-bordered !outline-none mb-2"
@@ -313,6 +320,7 @@
             min="1"
             formControlName="quantity"
             (change)="updateValue()"
+            (focus)="select($event)"
           />
         </div>
         <div class="form-control min-w-0 flex-1">
@@ -322,6 +330,7 @@
             class="input input-bordered !outline-none text-end"
             formControlName="value"
             [readOnly]="feeForm.value.type === 'fine'"
+            (focus)="select($event)"
           />
         </div>
       </div>

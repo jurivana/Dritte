@@ -271,6 +271,11 @@ export class AdminComponent implements OnInit {
     this.paymentLength$.next(this.paymentLength$.value + 10);
   }
 
+  select(event: FocusEvent): void {
+    const target = event.target as HTMLInputElement;
+    target.select();
+  }
+
   importDrinks(event: Event) {
     const target = event.target as HTMLInputElement;
     if (!target?.files) {
