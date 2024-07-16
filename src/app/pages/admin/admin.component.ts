@@ -4,6 +4,8 @@ import { AuthService } from '../../services/auth.service';
 import { BehaviorSubject, Observable, combineLatest, firstValueFrom, map } from 'rxjs';
 import { Balance, Fee, FeeTypeIcon, Payment, Player, Punishment } from '../../models/models';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
+import html2canvas from 'html2canvas-pro';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-admin',
@@ -14,6 +16,7 @@ export class AdminComponent implements OnInit {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;
   @ViewChild('paymentModal') paymentModal: ElementRef<HTMLDialogElement>;
   @ViewChild('punishmentModal') punishmentModal: ElementRef<HTMLDialogElement>;
+  @ViewChild('summaryTable') summaryTable: ElementRef<HTMLDialogElement>;
 
   players$: Observable<Player[]>;
 
@@ -373,6 +376,30 @@ export class AdminComponent implements OnInit {
       }
     };
     reader.readAsText(file);
+  }
+
+  async exportSummary(): Promise<void> {
+    this.summaryTable.nativeElement.style.width = '700px';
+    this.summaryTable.nativeElement.style.maxWidth = 'none';
+
+    const canvas = await html2canvas(this.summaryTable.nativeElement, { backgroundColor: '#1d232a' });
+    canvas.toBlob(async blob => {
+      if (blob) {
+        try {
+          await navigator.share({
+            files: [
+              new File([blob], 'Mannschaftskasse Dritte.png', {
+                type: blob.type
+              })
+            ]
+          });
+        } catch (e) {
+          saveAs(blob, 'Mannschaftskasse Dritte.png');
+        }
+      }
+      this.summaryTable.nativeElement.style.width = 'inherit';
+      this.summaryTable.nativeElement.style.maxWidth = 'inherit';
+    });
   }
 
   dateForInput(date: Date): string {
