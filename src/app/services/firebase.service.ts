@@ -141,6 +141,14 @@ export class FirebaseService {
     addDoc(collection(this.firestore, 'punishments'), punishment);
   }
 
+  updatePunishment(id: string, punishment: Partial<Punishment>): void {
+    updateDoc(doc(this.firestore, 'punishments', id), punishment);
+  }
+
+  deletePunishment(id: string): void {
+    deleteDoc(doc(this.firestore, 'punishments', id));
+  }
+
   updateValues(values: Partial<Values>): void {
     updateDoc(doc(this.firestore, 'values/0'), values);
   }

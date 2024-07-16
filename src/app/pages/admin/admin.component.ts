@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FirebaseService } from '../../services/firebase.service';
 import { AuthService } from '../../services/auth.service';
 import { BehaviorSubject, Observable, combineLatest, firstValueFrom, map } from 'rxjs';
-import { Balance, Fee, FeeTypeIcon, Payment, Player } from '../../models/models';
+import { Balance, Fee, FeeTypeIcon, Payment, Player, Punishment } from '../../models/models';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 
 @Component({
@@ -13,6 +13,7 @@ import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 export class AdminComponent implements OnInit {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;
   @ViewChild('paymentModal') paymentModal: ElementRef<HTMLDialogElement>;
+  @ViewChild('punishmentModal') punishmentModal: ElementRef<HTMLDialogElement>;
 
   players$: Observable<Player[]>;
 
@@ -27,12 +28,14 @@ export class AdminComponent implements OnInit {
   canExtendPayments: boolean = true;
   paymentForm: FormGroup;
 
+  punishmentForm: FormGroup;
+
   balance: Balance;
 
   constructor(
     public authService: AuthService,
     public fbService: FirebaseService,
-    private formBuiler: NonNullableFormBuilder
+    private formBuilder: NonNullableFormBuilder
   ) {}
 
   ngOnInit(): void {
@@ -58,7 +61,7 @@ export class AdminComponent implements OnInit {
     this.fbService.balance$.subscribe(balance => (this.balance = balance));
 
     const currDate = this.dateForInput(new Date());
-    this.paymentForm = this.formBuiler.group({
+    this.paymentForm = this.formBuilder.group({
       id: [''],
       title: ['', Validators.required],
       value: ['', [Validators.required, Validators.pattern(/-?\d+/)]],
@@ -68,7 +71,7 @@ export class AdminComponent implements OnInit {
       playerId: ['']
     });
 
-    this.feeForm = this.formBuiler.group({
+    this.feeForm = this.formBuilder.group({
       id: [''],
       playerId: ['', Validators.required],
       date: [currDate, Validators.required],
@@ -77,6 +80,12 @@ export class AdminComponent implements OnInit {
       comment: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.pattern(/\d+/)]],
       value: ['', [Validators.required, Validators.pattern(/-?\d+/)]]
+    });
+
+    this.punishmentForm = this.formBuilder.group({
+      id: [''],
+      name: ['', Validators.required],
+      value: ['', Validators.required]
     });
   }
 
@@ -185,6 +194,15 @@ export class AdminComponent implements OnInit {
     this.resetFeeForm();
   }
 
+  savePunishment() {
+    const { id, name, value } = this.punishmentForm.value;
+    if (id) {
+      this.fbService.updatePunishment(id, { name, value });
+    } else {
+      this.fbService.addPunishment({ name, value });
+    }
+  }
+
   editPayment(payment: Payment): void {
     this.paymentForm.patchValue({
       ...payment,
@@ -205,6 +223,13 @@ export class AdminComponent implements OnInit {
       punishment
     });
     this.feeModal.nativeElement.showModal();
+  }
+
+  editPunishment(punishment: Punishment): void {
+    this.punishmentForm.patchValue(punishment);
+    this.punishmentModal.nativeElement.showModal();
+    this.punishmentModal.nativeElement.focus();
+    this.punishmentModal.nativeElement.blur();
   }
 
   deletePayment(): void {
@@ -239,6 +264,14 @@ export class AdminComponent implements OnInit {
     this.updateValue();
   }
 
+  deletePunishment(): void {
+    if (!this.punishmentForm.value.id) {
+      return;
+    }
+    this.fbService.deletePunishment(this.punishmentForm.value.id);
+    this.resetPunishmentForm();
+  }
+
   updateValue() {
     if (this.feeForm.value.type === 'fine') {
       const punishment = this.fbService.punishments.find(p => p.id === this.feeForm.value.punishment);
@@ -261,6 +294,11 @@ export class AdminComponent implements OnInit {
   resetPaymentForm(): void {
     this.paymentForm.reset();
     this.paymentModal.nativeElement.close();
+  }
+
+  resetPunishmentForm(): void {
+    this.punishmentForm.reset();
+    this.punishmentModal.nativeElement.close();
   }
 
   increaseFeeLength(): void {
