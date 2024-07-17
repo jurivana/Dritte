@@ -330,6 +330,7 @@ export class AdminComponent implements OnInit {
         return;
       }
 
+      const oldLastDrink = this.fbService.values.lastDrink.toDate();
       let updatedLastDrink = false;
       const lines = text.split(/\r?\n/);
       for (let i = lines.length - 1; i >= 0; i--) {
@@ -337,7 +338,7 @@ export class AdminComponent implements OnInit {
         const [day, month, year] = line.slice(0, 8).split('.');
         const time = line.slice(10, 15);
         const date = new Date(`${month}/${day}/${year} ${time}`);
-        if (date <= this.fbService.values.lastDrink.toDate()) {
+        if (date <= oldLastDrink) {
           return;
         }
 
