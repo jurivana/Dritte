@@ -10,7 +10,7 @@ import { routes } from './app.routes';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MainComponent } from './components/main/main.component';
 import localeDe from '@angular/common/locales/de';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -19,12 +19,20 @@ registerLocaleData(localeDe);
 
 @NgModule({
   declarations: [AppComponent, MainComponent, AdminComponent, StatsComponent, LoginComponent],
-  imports: [CommonModule, BrowserModule, RouterModule.forRoot(routes), RouterOutlet, ReactiveFormsModule, ServiceWorkerModule.register('ngsw-worker.js', {
-  enabled: !isDevMode(),
-  // Register the ServiceWorker as soon as the application is stable
-  // or after 30 seconds (whichever comes first).
-  registrationStrategy: 'registerWhenStable:30000'
-})],
+  imports: [
+    CommonModule,
+    BrowserModule,
+    RouterModule.forRoot(routes),
+    RouterOutlet,
+    FormsModule,
+    ReactiveFormsModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
+  ],
   bootstrap: [AppComponent],
   providers: [
     provideFirebaseApp(() =>

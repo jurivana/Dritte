@@ -176,7 +176,7 @@
           </thead>
           <tbody>
             @for (summary of fbService.playerSummary$ | async; track $index) {
-              <tr class="hover">
+              <tr class="hover cursor-pointer" routerLink="stats/{{ fbService.values.season }}/{{ summary.playerId }}">
                 <th>{{ summary.player }}</th>
                 <td class="text-right pr-0">{{ summary.drink }}</td>
                 <td class="text-right pr-0">{{ summary.fine }}</td>

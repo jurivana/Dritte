@@ -8,12 +8,7 @@
       routerLink="/"
     />
     @if (router.url.startsWith("/stats")) {
-      <select class="select select-bordered" [value]="null">
-        <option hidden selected>Saison</option>
-        @for (season of seasons$ | async; track $index) {
-          <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
-        }
-      </select>
+      <button class="btn" routerLink="/"><i class="fas fa-house"></i> Start</button>
     } @else {
       <button class="btn" routerLink="/stats"><i class="fas fa-chart-simple"></i> Statistiken</button>
     }

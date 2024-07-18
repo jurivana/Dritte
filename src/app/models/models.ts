@@ -51,6 +51,7 @@ export type Punishment = {
 };
 
 export type PlayerSummary = {
+  playerId: string;
   player: string;
   drink: number;
   fine: number;

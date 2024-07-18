@@ -73,6 +73,7 @@ export class FirebaseService {
           continue;
         }
         playerSummaryMap[player.id] = {
+          playerId: player.id,
           player: player.name,
           drink: 0,
           fine: 0,

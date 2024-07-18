@@ -1,1 +1,14 @@
-<p>stats works!</p>
+<div class="flex flex-col w-full items-center p-8 gap-4">
+  <select class="select select-bordered" [(ngModel)]="season" (change)="seasonChange($event)">
+    <option hidden selected>Saison</option>
+    @for (season of seasons$ | async; track $index) {
+      <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
+    }
+  </select>
+  <select class="select select-bordered" [(ngModel)]="playerId" (change)="playerChange($event)">
+    <option value>Alle</option>
+    @for (player of fbService.players$ | async; track player.id) {
+      <option [value]="player.id">{{ player.name }}</option>
+    }
+  </select>
+</div>
