@@ -1,6 +1,22 @@
 <div class="flex flex-col">
   <div class="flex flex-row justify-between items-center m-4">
-    <img src="assets/icons/svv_white.png" id="svv" alt="SVV Logo" class="h-10 cursor-pointer" routerLink="/" />
+    <img
+      src="assets/icons/svv_white.png"
+      id="svv"
+      alt="SVV Logo"
+      class="h-10 mr-2 cursor-pointer opacity-80"
+      routerLink="/"
+    />
+    @if (router.url.startsWith("/stats")) {
+      <select class="select select-bordered" [value]="null">
+        <option hidden selected>Saison</option>
+        @for (season of seasons$ | async; track $index) {
+          <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
+        }
+      </select>
+    } @else {
+      <button class="btn" routerLink="/stats"><i class="fas fa-chart-simple"></i> Statistiken</button>
+    }
     @if (authService.isLoggedIn$ | async) {
       <button class="btn btn-circle" (click)="authService.logout()">
         <i class="fas fa-right-from-bracket"></i>
