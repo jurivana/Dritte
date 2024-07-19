@@ -22,13 +22,13 @@ export class AdminComponent implements OnInit {
 
   fees$: Observable<Fee[]>;
   feeLength$ = new BehaviorSubject<number>(7);
-  canExtendFees: boolean = true;
+  canExtendFees: boolean;
   feeTypeIcon = FeeTypeIcon;
   feeForm: FormGroup;
 
   payments$: Observable<Payment[]>;
   paymentLength$ = new BehaviorSubject<number>(7);
-  canExtendPayments: boolean = true;
+  canExtendPayments: boolean;
   paymentForm: FormGroup;
 
   punishmentForm: FormGroup;
@@ -47,17 +47,14 @@ export class AdminComponent implements OnInit {
     );
     this.fees$ = combineLatest([this.fbService.fees$, this.feeLength$]).pipe(
       map(([fees, feeLength]) => {
-        if (feeLength >= fees.length) {
-          this.canExtendFees = false;
-        }
-        return fees.filter(fee => fee.season === this.fbService.values.season).slice(0, feeLength);
+        fees = fees.filter(fee => fee.season === this.fbService.values.season);
+        this.canExtendFees = feeLength < fees.length;
+        return fees.slice(0, feeLength);
       })
     );
     this.payments$ = combineLatest([this.fbService.payments$, this.paymentLength$]).pipe(
       map(([payments, paymentLength]) => {
-        if (paymentLength >= payments.length) {
-          this.canExtendPayments = false;
-        }
+        this.canExtendPayments = paymentLength < payments.length;
         return payments.slice(0, paymentLength);
       })
     );

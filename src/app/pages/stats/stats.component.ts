@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FirebaseService } from '../../services/firebase.service';
 import { BehaviorSubject, combineLatest, map, Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Fee } from '../../models/models';
+import { Fee, FeeTypeIcon, PlayerSummary } from '../../models/models';
 
 @Component({
   selector: 'app-stats',
@@ -13,11 +13,15 @@ export class StatsComponent implements OnInit {
   seasons$ = new BehaviorSubject<number[]>([24]);
 
   season: string;
-  season$ = new Subject<string>();
+  season$ = new BehaviorSubject<string | null>(null);
   playerId: string = '';
-  playerId$ = new Subject<string | null>();
+  playerId$ = new BehaviorSubject<string | null>(null);
 
-  fees$ = new Observable<Fee[]>();
+  playerSummary$ = new Observable<PlayerSummary>();
+  fees$ = new BehaviorSubject<Fee[]>([]);
+  feeLength$ = new BehaviorSubject<number>(7);
+  canExtendFees: boolean;
+  feeTypeIcon = FeeTypeIcon;
 
   constructor(
     public fbService: FirebaseService,
@@ -46,20 +50,32 @@ export class StatsComponent implements OnInit {
       this.playerId$.next(this.playerId);
     });
 
-    this.fees$ = combineLatest([this.season$, this.playerId$, this.fbService.fees$]).pipe(
-      map(([season, playerId, fees]) => {
-        return fees.filter(f => f.season === season && (!playerId || f.playerId === playerId));
-      })
+    combineLatest([this.season$, this.playerId$, this.fbService.fees$, this.feeLength$]).subscribe(
+      ([season, playerId, fees, feeLength]) => {
+        fees = fees.filter(f => f.season === season && (!playerId || f.playerId === playerId));
+        this.canExtendFees = feeLength < fees.length;
+        this.fees$.next(fees.slice(0, feeLength));
+      }
+    );
+
+    this.playerSummary$ = combineLatest([this.fbService.playerSummary$, this.playerId$]).pipe(
+      map(([summaries, playerId]) => summaries.find(s => s.playerId === playerId)!)
     );
   }
 
   seasonChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
+    this.feeLength$.next(7);
     this.router.navigate(['stats', target.value, this.playerId]);
   }
 
   playerChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
+    this.feeLength$.next(7);
     this.router.navigate(['stats', this.season, target.value]);
+  }
+
+  increaseFeeLength(): void {
+    this.feeLength$.next(this.feeLength$.value + 10);
   }
 }

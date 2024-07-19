@@ -1,14 +1,82 @@
 <div class="flex flex-col w-full items-center p-8 gap-4">
-  <select class="select select-bordered" [(ngModel)]="season" (change)="seasonChange($event)">
+  <select class="select select-bordered !outline-none" [(ngModel)]="season" (change)="seasonChange($event)">
     <option hidden selected>Saison</option>
     @for (season of seasons$ | async; track $index) {
       <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
     }
   </select>
-  <select class="select select-bordered" [(ngModel)]="playerId" (change)="playerChange($event)">
+  <select class="select select-bordered !outline-none" [(ngModel)]="playerId" (change)="playerChange($event)">
     <option value>Alle</option>
     @for (player of fbService.players$ | async; track player.id) {
       <option [value]="player.id">{{ player.name }}</option>
     }
   </select>
+  @if (playerId) {
+    <div class="flex flex-col max-w-full w-[500px] border-2 border-white/5 rounded-md">
+      <div class="flex justify-evenly items-center">
+        <div class="stats stats-vertical">
+          <div class="stat place-items-center">
+            <div class="stat-title">Offene Beiträge</div>
+            <div class="stat-value">{{ (playerSummary$ | async)?.total }} €</div>
+          </div>
+        </div>
+      </div>
+      <div class="divider my-0 h-0.5"></div>
+      <div class="flex justify-between">
+        <div class="stats grid-cols-3 w-full">
+          <div class="stat place-items-center">
+            <div class="stat-title">Getränke</div>
+            <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.drink }} €</div>
+          </div>
+          <div class="stat place-items-center">
+            <div class="stat-title">Strafen</div>
+            <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.fine }} €</div>
+          </div>
+          <div class="stat place-items-center">
+            <div class="stat-title">Sonstiges</div>
+            <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.misc }} €</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-full w-[500px] join join-vertical my-4">
+      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+        <span class="flex-1 font-bold">Beiträge</span>
+      </div>
+      <table class="table table-zebra table-fixed join-item">
+        <tbody>
+          @for (fee of fees$ | async; track fee.id) {
+            <tr class="hover">
+              <td class="flex gap-4 items-center" [ngClass]="{ 'opacity-50': fee.paid }">
+                @if (fee.paid) {
+                  <i class="fa-fw fas fa-circle-check"></i>
+                } @else {
+                  <i class="fa-fw {{ feeTypeIcon[fee.type] }}"></i>
+                }
+                <div class="flex flex-col justify-center flex-1 min-w-0 gap-1">
+                  <div class="flex flex-row items-center gap-2">
+                    <div class="font-bold">{{ fee.comment }}</div>
+                  </div>
+                  <div class="flex flex-row items-center gap-2">
+                    <div class="badge badge-neutral badge-sm gap-1 px-2">
+                      <i class="far fa-calendar fa-2xs"></i>
+                      {{ fee.date | date: "shortDate" }}
+                    </div>
+                    <div class="badge badge-neutral badge-sm px-2">{{ fee.quantity }} x</div>
+                  </div>
+                </div>
+                <div class="font-bold">{{ fee.value }} €</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (canExtendFees) {
+        <button class="btn join-item" (click)="increaseFeeLength()">
+          <i class="fas fa-angle-down"></i>
+          Mehr laden
+        </button>
+      }
+    </div>
+  }
 </div>
