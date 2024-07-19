@@ -1,82 +1,170 @@
-<div class="flex flex-col w-full items-center p-8 gap-4">
-  <select class="select select-bordered !outline-none" [(ngModel)]="season" (change)="seasonChange($event)">
-    <option hidden selected>Saison</option>
-    @for (season of seasons$ | async; track $index) {
-      <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
-    }
-  </select>
-  <select class="select select-bordered !outline-none" [(ngModel)]="playerId" (change)="playerChange($event)">
-    <option value>Alle</option>
-    @for (player of fbService.players$ | async; track player.id) {
-      <option [value]="player.id">{{ player.name }}</option>
-    }
-  </select>
-  @if (playerId) {
-    <div class="flex flex-col max-w-full w-[500px] border-2 border-white/5 rounded-md">
-      <div class="flex justify-evenly items-center">
-        <div class="stats stats-vertical">
-          <div class="stat place-items-center">
-            <div class="stat-title">Offene Beiträge</div>
-            <div class="stat-value">{{ (playerSummary$ | async)?.total }} €</div>
-          </div>
-        </div>
-      </div>
-      <div class="divider my-0 h-0.5"></div>
-      <div class="flex justify-between">
-        <div class="stats grid-cols-3 w-full">
-          <div class="stat place-items-center">
-            <div class="stat-title">Getränke</div>
-            <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.drink }} €</div>
-          </div>
-          <div class="stat place-items-center">
-            <div class="stat-title">Strafen</div>
-            <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.fine }} €</div>
-          </div>
-          <div class="stat place-items-center">
-            <div class="stat-title">Sonstiges</div>
-            <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.misc }} €</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="max-w-full w-[500px] join join-vertical my-4">
-      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
-        <span class="flex-1 font-bold">Beiträge</span>
-      </div>
-      <table class="table table-zebra table-fixed join-item">
-        <tbody>
-          @for (fee of fees$ | async; track fee.id) {
-            <tr class="hover">
-              <td class="flex gap-4 items-center" [ngClass]="{ 'opacity-50': fee.paid }">
-                @if (fee.paid) {
-                  <i class="fa-fw fas fa-circle-check"></i>
-                } @else {
-                  <i class="fa-fw {{ feeTypeIcon[fee.type] }}"></i>
-                }
-                <div class="flex flex-col justify-center flex-1 min-w-0 gap-1">
-                  <div class="flex flex-row items-center gap-2">
-                    <div class="font-bold">{{ fee.comment }}</div>
-                  </div>
-                  <div class="flex flex-row items-center gap-2">
-                    <div class="badge badge-neutral badge-sm gap-1 px-2">
-                      <i class="far fa-calendar fa-2xs"></i>
-                      {{ fee.date | date: "shortDate" }}
-                    </div>
-                    <div class="badge badge-neutral badge-sm px-2">{{ fee.quantity }} x</div>
-                  </div>
-                </div>
-                <div class="font-bold">{{ fee.value }} €</div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      @if (canExtendFees) {
-        <button class="btn join-item" (click)="increaseFeeLength()">
-          <i class="fas fa-angle-down"></i>
-          Mehr laden
-        </button>
+@for (isAdmin of [authService.isLoggedIn$ | async]; track $index) {
+  <div class="flex flex-col w-full items-center p-8 gap-4">
+    <select class="select select-bordered !outline-none" [(ngModel)]="season" (change)="seasonChange($event)">
+      <option hidden selected>Saison</option>
+      @for (season of seasons$ | async; track $index) {
+        <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
       }
+    </select>
+    <select class="select select-bordered !outline-none" [(ngModel)]="playerId" (change)="playerChange($event)">
+      <option value>Alle</option>
+      @for (player of players$ | async; track player.id) {
+        <option [value]="player.id">{{ player.name }}</option>
+      }
+    </select>
+    @if (playerId) {
+      <div class="flex flex-col max-w-full w-[500px] border-2 border-white/5 rounded-md">
+        <div class="flex justify-evenly items-center">
+          <div class="stats stats-vertical">
+            <div class="stat place-items-center">
+              <div class="stat-title">Offene Beiträge</div>
+              <div class="stat-value">{{ (playerSummary$ | async)?.total }} €</div>
+            </div>
+          </div>
+        </div>
+        <div class="divider my-0 h-0.5"></div>
+        <div class="flex justify-between">
+          <div class="stats grid-cols-3 w-full">
+            <div class="stat place-items-center">
+              <div class="stat-title">Getränke</div>
+              <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.drink }} €</div>
+            </div>
+            <div class="stat place-items-center">
+              <div class="stat-title">Strafen</div>
+              <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.fine }} €</div>
+            </div>
+            <div class="stat place-items-center">
+              <div class="stat-title">Sonstiges</div>
+              <div class="stat-value text-lg sm:text-2xl">{{ (playerSummary$ | async)?.misc }} €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="max-w-full w-[500px] join join-vertical my-4">
+        <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+          <span class="flex-1 font-bold">Beiträge</span>
+        </div>
+        <table class="table table-zebra table-fixed join-item">
+          <tbody>
+            @for (fee of fees$ | async; track fee.id) {
+              <tr class="hover" [ngClass]="{ 'cursor-pointer': isAdmin }" (click)="isAdmin ? editFee(fee) : null">
+                <td class="flex gap-4 items-center" [ngClass]="{ 'opacity-50': fee.paid }">
+                  @if (fee.paid) {
+                    <i class="fa-fw fas fa-circle-check"></i>
+                  } @else {
+                    <i class="fa-fw {{ feeTypeIcon[fee.type] }}"></i>
+                  }
+                  <div class="flex flex-col justify-center flex-1 min-w-0 gap-1">
+                    <div class="flex flex-row items-center gap-2">
+                      <div class="font-bold">{{ fee.comment }}</div>
+                    </div>
+                    <div class="flex flex-row items-center gap-2">
+                      <div class="badge badge-neutral badge-sm gap-1 px-2">
+                        <i class="far fa-calendar fa-2xs"></i>
+                        {{ fee.date | date: "shortDate" }}
+                      </div>
+                      <div class="badge badge-neutral badge-sm px-2">{{ fee.quantity }} x</div>
+                    </div>
+                  </div>
+                  <div class="font-bold">{{ fee.value }} €</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (canExtendFees) {
+          <button class="btn join-item" (click)="increaseFeeLength()">
+            <i class="fas fa-angle-down"></i>
+            Mehr laden
+          </button>
+        }
+      </div>
+    }
+  </div>
+  <!-- ? BEITRAGS-DIALOG -->
+  <dialog #feeModal id="feeModal" class="modal" (close)="feeForm.reset()">
+    <div class="modal-box">
+      <div class="flex items-center mb-4">
+        <h3 class="text-lg font-bold flex-1">Beitrag {{ feeForm.value.id ? "bearbeiten" : "hinzufügen" }}</h3>
+        @if (feeForm.value.id) {
+          <button class="btn btn-ghost btn-circle" (click)="deleteFee()">
+            <i class="fas fa-trash"></i>
+          </button>
+        }
+      </div>
+      <form class="flex flex-col gap-2" [formGroup]="feeForm">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Spieler</span></label>
+          <select class="select select-bordered !outline-none" formControlName="playerId">
+            @for (player of players$ | async; track player.id) {
+              <option [value]="player.id">{{ player.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-control">
+          <div class="flex gap-2">
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Art</span></label>
+              <select class="select select-bordered !outline-none mb-2" formControlName="type">
+                <option value="fine">Strafe</option>
+                <option value="misc">Sonstiges</option>
+                <option value="drink" hidden>Getränk</option>
+              </select>
+            </div>
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Datum</span></label>
+              <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+            </div>
+          </div>
+          @if (feeForm.value.type === "misc") {
+            <input
+              type="text"
+              class="input input-bordered !outline-none"
+              formControlName="comment"
+              (focus)="select($event)"
+            />
+          } @else if (feeForm.value.type === "fine") {
+            <select
+              class="select select-bordered !outline-none mb-2"
+              formControlName="punishment"
+              (change)="punishmentChanged()"
+            >
+              @for (punishment of fbService.punishments$ | async; track punishment.id) {
+                <option [value]="punishment.id">{{ punishment.name }}</option>
+              }
+            </select>
+          }
+        </div>
+        <div class="flex gap-2">
+          <div class="form-control min-w-0 flex-1">
+            <label class="label"><span class="label-text">Anzahl</span></label>
+            <input
+              type="number"
+              class="input input-bordered !outline-none text-end"
+              min="1"
+              formControlName="quantity"
+              (change)="updateValue()"
+              (focus)="select($event)"
+            />
+          </div>
+          <div class="form-control min-w-0 flex-1">
+            <label class="label"><span class="label-text">Wert</span></label>
+            <input
+              type="number"
+              class="input input-bordered !outline-none text-end"
+              formControlName="value"
+              [readOnly]="feeForm.value.type === 'fine'"
+              (focus)="select($event)"
+            />
+          </div>
+        </div>
+      </form>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2">
+          <button class="btn btn-ghost" (click)="resetFeeForm()">Schließen</button>
+          <button class="btn" [disabled]="!feeForm.valid" (click)="saveFee()">Speichern</button>
+        </form>
+      </div>
     </div>
-  }
-</div>
+  </dialog>
+}

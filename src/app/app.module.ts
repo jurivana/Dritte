@@ -22,7 +22,7 @@ registerLocaleData(localeDe);
   imports: [
     CommonModule,
     BrowserModule,
-    RouterModule.forRoot(routes),
+    RouterModule.forRoot(routes, { scrollPositionRestoration: 'enabled' }),
     RouterOutlet,
     FormsModule,
     ReactiveFormsModule,

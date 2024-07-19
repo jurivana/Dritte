@@ -1,7 +1,7 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FirebaseService } from '../../services/firebase.service';
 import { AuthService } from '../../services/auth.service';
-import { BehaviorSubject, Observable, combineLatest, firstValueFrom, map } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, firstValueFrom, map, takeUntil } from 'rxjs';
 import { Balance, Fee, FeeTypeIcon, Payment, Player, Punishment } from '../../models/models';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 import html2canvas from 'html2canvas-pro';
@@ -12,7 +12,7 @@ import { saveAs } from 'file-saver';
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss'
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;
   @ViewChild('paymentModal') paymentModal: ElementRef<HTMLDialogElement>;
   @ViewChild('punishmentModal') punishmentModal: ElementRef<HTMLDialogElement>;
@@ -34,6 +34,8 @@ export class AdminComponent implements OnInit {
   punishmentForm: FormGroup;
 
   balance: Balance;
+
+  destroyed$ = new Subject<void>();
 
   constructor(
     public authService: AuthService,
@@ -58,7 +60,7 @@ export class AdminComponent implements OnInit {
         return payments.slice(0, paymentLength);
       })
     );
-    this.fbService.balance$.subscribe(balance => (this.balance = balance));
+    this.fbService.balance$.pipe(takeUntil(this.destroyed$)).subscribe(balance => (this.balance = balance));
 
     const currDate = this.dateForInput(new Date());
     this.paymentForm = this.formBuilder.group({
@@ -87,6 +89,11 @@ export class AdminComponent implements OnInit {
       name: ['', Validators.required],
       value: ['', Validators.required]
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
   }
 
   async savePayment() {
