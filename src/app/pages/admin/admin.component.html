@@ -50,13 +50,13 @@
             @for (payment of payments$ | async; track payment.id) {
               <tr
                 class="hover"
-                [ngClass]="{ 'cursor-pointer': isAdmin }"
+                [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
                 (click)="isAdmin ? editPayment(payment) : null"
               >
                 <td class="flex gap-4 items-center">
                   <i class="fa-fw fas fa-{{ payment.value >= 0 ? 'circle-plus' : 'circle-minus' }}"></i>
                   <div class="flex flex-col justify-center flex-1 min-w-0">
-                    <div class="font-bold">{{ payment.title }}</div>
+                    <div class="font-bold text-ellipsis overflow-hidden text-nowrap">{{ payment.title }}</div>
                     <div class="flex flex-row items-center gap-2">
                       <div class="badge badge-neutral badge-sm gap-1 px-2">
                         <i class="far fa-calendar fa-2xs"></i>
@@ -118,7 +118,11 @@
         <table class="table table-zebra table-fixed join-item">
           <tbody>
             @for (fee of fees$ | async; track fee.id) {
-              <tr class="hover" [ngClass]="{ 'cursor-pointer': isAdmin }" (click)="isAdmin ? editFee(fee) : null">
+              <tr
+                class="hover"
+                [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
+                (click)="isAdmin ? editFee(fee) : null"
+              >
                 <td class="flex gap-4 items-center" [ngClass]="{ 'opacity-50': fee.paid }">
                   @if (fee.paid) {
                     <i class="fa-fw fas fa-circle-check"></i>
@@ -176,7 +180,10 @@
           </thead>
           <tbody>
             @for (summary of fbService.playerSummary$ | async; track $index) {
-              <tr class="hover cursor-pointer" routerLink="stats/{{ fbService.values.season }}/{{ summary.playerId }}">
+              <tr
+                class="hover cursor-pointer active:!bg-[oklch(var(--b3))]"
+                routerLink="stats/{{ fbService.values.season }}/{{ summary.playerId }}"
+              >
                 <th>{{ summary.player }}</th>
                 <td class="text-right pr-0">{{ summary.drink }}</td>
                 <td class="text-right pr-0">{{ summary.fine }}</td>
@@ -374,7 +381,7 @@
             @for (punishment of fbService.punishments$ | async; track punishment.id) {
               <tr
                 class="hover"
-                [ngClass]="{ 'cursor-pointer': isAdmin }"
+                [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
                 (click)="isAdmin ? editPunishment(punishment) : null"
               >
                 <td class="flex gap-4 items-center">

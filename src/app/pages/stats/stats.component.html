@@ -55,7 +55,11 @@
         <table class="table table-zebra table-fixed join-item">
           <tbody>
             @for (fee of fees$ | async; track fee.id) {
-              <tr class="hover" [ngClass]="{ 'cursor-pointer': isAdmin }" (click)="isAdmin ? editFee(fee) : null">
+              <tr
+                class="hover"
+                [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
+                (click)="isAdmin ? editFee(fee) : null"
+              >
                 <td class="flex gap-4 items-center" [ngClass]="{ 'opacity-50': fee.paid }">
                   @if (fee.paid) {
                     <i class="fa-fw fas fa-circle-check"></i>
@@ -96,10 +100,12 @@
             @for (summary of playerFineSummaries$ | async; track summary.fine) {
               <tr class="hover">
                 <td class="flex gap-4 items-center">
-                  <div class="flex flex-row items-center gap-2 flex-1">
-                    <div class="w-5 text-end">{{ summary.rank ? summary.rank + "." : "" }}</div>
-                    <div class="font-bold">{{ summary.fine === "Getränk" ? "Getränke" : summary.fine }}</div>
-                    <div class="badge badge-neutral badge-sm px-2">{{ summary.quantity }} x</div>
+                  <div class="flex flex-row items-center gap-2 flex-1 overflow-hidden">
+                    <div class="w-5 text-end flex-shrink-0">{{ summary.rank ? summary.rank + "." : "" }}</div>
+                    <div class="font-bold text-ellipsis overflow-hidden text-nowrap">
+                      {{ summary.fine === "Getränk" ? "Getränke" : summary.fine }}
+                    </div>
+                    <div class="badge badge-neutral badge-sm px-2 flex-shrink-0">{{ summary.quantity }} x</div>
                   </div>
                   <div class="font-bold">{{ summary.value }} €</div>
                 </td>
@@ -128,7 +134,7 @@
         <table class="table table-zebra table-fixed join-item">
           <tbody>
             @for (summary of fineSummaries$ | async; track summary.player.id) {
-              <tr class="hover">
+              <tr class="hover cursor-pointer active:!bg-[oklch(var(--b3))]" routerLink="{{ summary.player.id }}">
                 <td class="flex gap-4 items-center">
                   <div class="flex flex-row items-center gap-2 flex-1">
                     <div class="w-5 text-end">{{ summary.rank ? summary.rank + "." : "" }}</div>
