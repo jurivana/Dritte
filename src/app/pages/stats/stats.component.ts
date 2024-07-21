@@ -6,6 +6,20 @@ import { Fee, FeeTypeIcon, Player, PlayerSummary } from '../../models/models';
 import { AuthService } from '../../services/auth.service';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 
+type FineSummary = {
+  player: Player;
+  quantity: number;
+  value: number;
+  rank?: number;
+};
+
+type PlayerFineSummary = {
+  fine: string;
+  quantity: number;
+  value: number;
+  rank?: number;
+};
+
 @Component({
   selector: 'app-stats',
   templateUrl: './stats.component.html',
@@ -29,6 +43,13 @@ export class StatsComponent implements OnInit, OnDestroy {
   feeForm: FormGroup;
 
   players$: Observable<Player[]>;
+
+  fineTypes$ = new Observable<string[]>();
+  fineType: string = 'Getränk';
+  fineType$ = new BehaviorSubject<string>(this.fineType);
+  fineSummaries$ = new Observable<FineSummary[]>();
+
+  playerFineSummaries$ = new Observable<PlayerFineSummary[]>();
 
   destroyed$ = new Subject<void>();
 
@@ -89,6 +110,81 @@ export class StatsComponent implements OnInit, OnDestroy {
     this.players$ = combineLatest([this.fbService.players$, this.fbService.values$]).pipe(
       map(([players, values]) => players.filter(player => player.active[values.season]))
     );
+
+    this.fineTypes$ = combineLatest([this.fbService.fees$, this.season$]).pipe(
+      map(([fees, season]) =>
+        [...new Set(fees.filter(f => f.season === season && f.type === 'fine').map(fee => fee.comment))].sort()
+      )
+    );
+
+    this.fineSummaries$ = combineLatest([
+      this.fbService.fees$,
+      this.fbService.players$,
+      this.season$,
+      this.fineType$
+    ]).pipe(
+      map(([fees, players, season, type]) => {
+        const summaryMap = fees
+          .filter(f => f.season === season && f.comment === type)
+          .reduce(
+            (summary, fee) => {
+              if (!summary[fee.playerId]) {
+                summary[fee.playerId] = {
+                  player: players.find(p => p.id === fee.playerId)!,
+                  quantity: 0,
+                  value: 0
+                };
+              }
+              summary[fee.playerId].quantity += fee.quantity;
+              summary[fee.playerId].value += fee.value;
+              return summary;
+            },
+            {} as { [playerId: string]: FineSummary }
+          );
+
+        const summaries = Object.values(summaryMap).sort((a, b) => b.value - a.value);
+        let lastValue = Infinity;
+        for (const [i, summary] of summaries.entries()) {
+          if (summary.value < lastValue) {
+            summary.rank = i + 1;
+            lastValue = summary.value;
+          }
+        }
+        return summaries;
+      })
+    );
+
+    this.playerFineSummaries$ = combineLatest([this.fbService.fees$, this.playerId$, this.season$]).pipe(
+      map(([fees, playerId, season]) => {
+        const summaryMap = fees
+          .filter(f => f.season === season && f.type !== 'misc' && f.playerId === playerId)
+          .reduce(
+            (summary, fee) => {
+              if (!summary[fee.comment]) {
+                summary[fee.comment] = {
+                  fine: fee.comment,
+                  quantity: 0,
+                  value: 0
+                };
+              }
+              summary[fee.comment].quantity += fee.quantity;
+              summary[fee.comment].value += fee.value;
+              return summary;
+            },
+            {} as { [playerId: string]: PlayerFineSummary }
+          );
+
+        const summaries = Object.values(summaryMap).sort((a, b) => b.value - a.value);
+        let lastValue = Infinity;
+        for (const [i, summary] of summaries.entries()) {
+          if (summary.value < lastValue) {
+            summary.rank = i + 1;
+            lastValue = summary.value;
+          }
+        }
+        return summaries;
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -106,6 +202,12 @@ export class StatsComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLSelectElement;
     this.feeLength$.next(7);
     this.router.navigate(['stats', this.season, target.value]);
+  }
+
+  fineChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.fineType = target.value;
+    this.fineType$.next(target.value);
   }
 
   increaseFeeLength(): void {

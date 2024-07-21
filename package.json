@@ -24,6 +24,7 @@
     "@fortawesome/fontawesome-free": "^6.5.2",
     "file-saver": "^2.0.5",
     "html2canvas-pro": "^1.5.6",
+    "jszip": "^3.10.1",
     "prettier": "^3.3.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

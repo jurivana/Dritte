@@ -1,18 +1,26 @@
 @for (isAdmin of [authService.isLoggedIn$ | async]; track $index) {
   <div class="flex flex-col w-full items-center p-8 gap-4">
-    <select class="select select-bordered !outline-none" [(ngModel)]="season" (change)="seasonChange($event)">
+    <select
+      class="select select-bordered !outline-none w-48 text-center"
+      [(ngModel)]="season"
+      (change)="seasonChange($event)"
+    >
       <option hidden selected>Saison</option>
       @for (season of seasons$ | async; track $index) {
         <option [value]="season">20{{ season }}/{{ season + 1 }}</option>
       }
     </select>
-    <select class="select select-bordered !outline-none" [(ngModel)]="playerId" (change)="playerChange($event)">
+    <select
+      class="select select-bordered !outline-none w-48 text-center"
+      [(ngModel)]="playerId"
+      (change)="playerChange($event)"
+    >
       <option value>Alle</option>
       @for (player of players$ | async; track player.id) {
         <option [value]="player.id">{{ player.name }}</option>
       }
     </select>
-    @if (playerId) {
+    @if (playerId$ | async) {
       <div class="flex flex-col max-w-full w-[500px] border-2 border-white/5 rounded-md">
         <div class="flex justify-evenly items-center">
           <div class="stats stats-vertical">
@@ -78,6 +86,61 @@
             Mehr laden
           </button>
         }
+      </div>
+      <div class="max-w-full w-[500px] join join-vertical my-4">
+        <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+          <span class="flex-1 font-bold">Saisonbilanz</span>
+        </div>
+        <table class="table table-zebra table-fixed join-item">
+          <tbody>
+            @for (summary of playerFineSummaries$ | async; track summary.fine) {
+              <tr class="hover">
+                <td class="flex gap-4 items-center">
+                  <div class="flex flex-row items-center gap-2 flex-1">
+                    <div class="w-5 text-end">{{ summary.rank ? summary.rank + "." : "" }}</div>
+                    <div class="font-bold">{{ summary.fine === "Getränk" ? "Getränke" : summary.fine }}</div>
+                    <div class="badge badge-neutral badge-sm px-2">{{ summary.quantity }} x</div>
+                  </div>
+                  <div class="font-bold">{{ summary.value }} €</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <select
+        class="select select-bordered !outline-none w-48 text-center"
+        [(ngModel)]="fineType"
+        (change)="fineChange($event)"
+      >
+        <option value="Getränk">Getränke</option>
+        @for (fineType of fineTypes$ | async; track fineType) {
+          <option [value]="fineType">{{ fineType }}</option>
+        }
+      </select>
+      <div class="max-w-full w-[500px] join join-vertical my-4">
+        <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+          <span class="flex-1 font-bold">{{
+            (fineType$ | async) === "Getränk" ? "Getränke" : (fineType$ | async)
+          }}</span>
+        </div>
+        <table class="table table-zebra table-fixed join-item">
+          <tbody>
+            @for (summary of fineSummaries$ | async; track summary.player.id) {
+              <tr class="hover">
+                <td class="flex gap-4 items-center">
+                  <div class="flex flex-row items-center gap-2 flex-1">
+                    <div class="w-5 text-end">{{ summary.rank ? summary.rank + "." : "" }}</div>
+                    <div class="font-bold">{{ summary.player.name }}</div>
+                    <div class="badge badge-neutral badge-sm px-2">{{ summary.quantity }} x</div>
+                  </div>
+                  <div class="font-bold">{{ summary.value }} €</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
     }
   </div>

@@ -6,6 +6,7 @@ import { Balance, Fee, FeeTypeIcon, Payment, Player, Punishment } from '../../mo
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 import html2canvas from 'html2canvas-pro';
 import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
 
 @Component({
   selector: 'app-admin',
@@ -328,8 +329,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
     const file = target.files[0];
     const reader = new FileReader();
-    reader.onload = async () => {
-      const text = reader.result?.toString();
+
+    const readFile = async (text: string | undefined) => {
       if (!text) {
         return;
       }
@@ -380,7 +381,22 @@ export class AdminComponent implements OnInit, OnDestroy {
         }
       }
     };
-    reader.readAsText(file);
+
+    if (file.type === 'text/plain ') {
+      reader.onload = async () => {
+        readFile(reader.result?.toString());
+      };
+      reader.readAsText(file);
+    } else {
+      const zip = new JSZip();
+      zip.loadAsync(file).then(zip => {
+        Object.values(zip.files)[0]
+          .async('string')
+          .then(data => {
+            readFile(data);
+          });
+      });
+    }
   }
 
   async exportSummary(): Promise<void> {
