@@ -195,13 +195,21 @@ export class StatsComponent implements OnInit, OnDestroy {
   seasonChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     this.feeLength$.next(7);
-    this.router.navigate(['stats', target.value, this.playerId]);
+    if (this.playerId) {
+      this.router.navigate(['stats', target.value, this.playerId]);
+    } else {
+      this.router.navigate(['stats', target.value]);
+    }
   }
 
   playerChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     this.feeLength$.next(7);
-    this.router.navigate(['stats', this.season, target.value]);
+    if (target.value) {
+      this.router.navigate(['stats', this.season, target.value]);
+    } else {
+      this.router.navigate(['stats', this.season]);
+    }
   }
 
   fineChange(event: Event): void {
