@@ -51,6 +51,43 @@
       <div class="max-w-full w-[500px] join join-vertical my-4">
         <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
           <span class="flex-1 font-bold">Beiträge</span>
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn">
+              <i class="fas {{ (feeFilter$ | async) ? 'fa-filter-circle-xmark' : 'fa-filter' }}"></i>
+            </div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+              <li>
+                <a
+                  class="py-4"
+                  [ngClass]="{ 'bg-base-200': (feeFilter$ | async) === 'fine' }"
+                  (click)="toggleFilter('fine')"
+                >
+                  <i class="fas fa-gavel fa-fw"></i>
+                  Strafen
+                </a>
+              </li>
+              <li>
+                <a
+                  class="py-4"
+                  [ngClass]="{ 'bg-base-200': (feeFilter$ | async) === 'misc' }"
+                  (click)="toggleFilter('misc')"
+                >
+                  <i class="fas fa-coins fa-fw"></i>
+                  Sonstiges
+                </a>
+              </li>
+              <li>
+                <a
+                  class="py-4"
+                  [ngClass]="{ 'bg-base-200': (feeFilter$ | async) === 'drink' }"
+                  (click)="toggleFilter('drink')"
+                >
+                  <i class="fas fa-glass-water fa-fw"></i>
+                  Getränke
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
         <table class="table table-zebra table-fixed join-item">
           <tbody>

@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { FirebaseService } from '../../services/firebase.service';
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, Subject, takeUntil } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Fee, FeeTypeIcon, Player, PlayerSummary } from '../../models/models';
+import { Fee, FeeType, FeeTypeIcon, Player, PlayerSummary } from '../../models/models';
 import { AuthService } from '../../services/auth.service';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 
@@ -38,6 +38,7 @@ export class StatsComponent implements OnInit, OnDestroy {
   playerSummary$ = new Observable<PlayerSummary>();
   fees$ = new BehaviorSubject<Fee[]>([]);
   feeLength$ = new BehaviorSubject<number>(7);
+  feeFilter$ = new BehaviorSubject<FeeType | null>(null);
   canExtendFees: boolean;
   feeTypeIcon = FeeTypeIcon;
   feeForm: FormGroup;
@@ -95,10 +96,12 @@ export class StatsComponent implements OnInit, OnDestroy {
         this.playerId$.next(this.playerId);
       });
 
-    combineLatest([this.season$, this.playerId$, this.fbService.fees$, this.feeLength$])
+    combineLatest([this.season$, this.playerId$, this.fbService.fees$, this.feeLength$, this.feeFilter$])
       .pipe(takeUntil(this.destroyed$))
-      .subscribe(([season, playerId, fees, feeLength]) => {
-        fees = fees.filter(f => f.season === season && (!playerId || f.playerId === playerId));
+      .subscribe(([season, playerId, fees, feeLength, filter]) => {
+        fees = fees.filter(
+          f => f.season === season && (!playerId || f.playerId === playerId) && (!filter || filter === f.type)
+        );
         this.canExtendFees = feeLength < fees.length;
         this.fees$.next(fees.slice(0, feeLength));
       });
@@ -185,6 +188,16 @@ export class StatsComponent implements OnInit, OnDestroy {
         return summaries;
       })
     );
+  }
+
+  toggleFilter(type: FeeType) {
+    if (type === this.feeFilter$.value) {
+      this.feeFilter$.next(null);
+    } else {
+      this.feeFilter$.next(type);
+    }
+    this.feeModal.nativeElement.focus();
+    this.feeModal.nativeElement.blur();
   }
 
   ngOnDestroy(): void {

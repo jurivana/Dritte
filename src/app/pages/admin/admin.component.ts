@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { FirebaseService } from '../../services/firebase.service';
 import { AuthService } from '../../services/auth.service';
 import { BehaviorSubject, Observable, Subject, combineLatest, firstValueFrom, map, takeUntil } from 'rxjs';
-import { Balance, Fee, FeeTypeIcon, Payment, Player, Punishment } from '../../models/models';
+import { Balance, Fee, FeeType, FeeTypeIcon, Payment, Player, Punishment } from '../../models/models';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 import html2canvas from 'html2canvas-pro';
 import { saveAs } from 'file-saver';
@@ -23,6 +23,7 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   fees$: Observable<Fee[]>;
   feeLength$ = new BehaviorSubject<number>(7);
+  feeFilter$ = new BehaviorSubject<FeeType | null>(null);
   canExtendFees: boolean;
   feeTypeIcon = FeeTypeIcon;
   feeForm: FormGroup;
@@ -48,9 +49,9 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.players$ = combineLatest([this.fbService.players$, this.fbService.values$]).pipe(
       map(([players, values]) => players.filter(player => player.active[values.season]))
     );
-    this.fees$ = combineLatest([this.fbService.fees$, this.feeLength$]).pipe(
-      map(([fees, feeLength]) => {
-        fees = fees.filter(fee => fee.season === this.fbService.values.season);
+    this.fees$ = combineLatest([this.fbService.fees$, this.feeLength$, this.feeFilter$]).pipe(
+      map(([fees, feeLength, filter]) => {
+        fees = fees.filter(fee => fee.season === this.fbService.values.season && (!filter || filter === fee.type));
         this.canExtendFees = feeLength < fees.length;
         return fees.slice(0, feeLength);
       })
@@ -95,6 +96,16 @@ export class AdminComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
+  }
+
+  toggleFilter(type: FeeType) {
+    if (type === this.feeFilter$.value) {
+      this.feeFilter$.next(null);
+    } else {
+      this.feeFilter$.next(type);
+    }
+    this.feeModal.nativeElement.focus();
+    this.feeModal.nativeElement.blur();
   }
 
   async savePayment() {
