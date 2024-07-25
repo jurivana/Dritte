@@ -25,3 +25,10 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   appearance: textfield;
 }
+
+.btn {
+  box-shadow: none;
+  &:active {
+    background-color: oklch(var(--b3));
+  }
+}
