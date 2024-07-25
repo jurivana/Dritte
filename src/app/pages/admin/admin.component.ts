@@ -393,7 +393,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       }
     };
 
-    if (file.type === 'text/plain ') {
+    if (file.type === 'text/plain') {
       reader.onload = async () => {
         readFile(reader.result?.toString());
       };
