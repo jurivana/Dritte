@@ -70,7 +70,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       title: ['', Validators.required],
       value: ['', [Validators.required, Validators.pattern(/-?\d+/)]],
       date: [currDate, Validators.required],
-      type: ['', Validators.required],
+      type: ['bank', Validators.required],
       from: ['player'],
       playerId: ['']
     });
