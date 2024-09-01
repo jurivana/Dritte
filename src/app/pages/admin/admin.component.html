@@ -148,6 +148,12 @@
                     <input id="drinkInput" type="file" class="hidden" (change)="importDrinks($event)" />
                   </a>
                 </li>
+                <li>
+                  <a class="py-4" onclick="closingModal.showModal(); closingModal.focus(); closingModal.blur()">
+                    <i class="fas fa-forward-step fa-fw"></i>
+                    Monatsabschluss
+                  </a>
+                </li>
               </ul>
             </div>
           }
@@ -219,9 +225,9 @@
             @for (summary of fbService.playerSummary$ | async; track $index) {
               <tr
                 class="hover cursor-pointer active:!bg-[oklch(var(--b3))]"
-                routerLink="stats/{{ fbService.values.season }}/{{ summary.playerId }}"
+                routerLink="stats/{{ fbService.values.season }}/{{ summary.player.id }}"
               >
-                <th>{{ summary.player }}</th>
+                <th>{{ summary.player.name }}</th>
                 <td class="text-right pr-0">{{ summary.drink }}</td>
                 <td class="text-right pr-0">{{ summary.fine }}</td>
                 <td class="text-right pr-0">{{ summary.misc }}</td>
@@ -470,6 +476,45 @@
           <form method="dialog" class="flex gap-2">
             <button class="btn btn-ghost" (click)="resetPunishmentForm()">Schließen</button>
             <button class="btn" [disabled]="!punishmentForm.valid" (click)="savePunishment()">Speichern</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- ? MONATSABSCHLUSS-DIALOG -->
+    <dialog #closingModal id="closingModal" class="modal" (close)="closingForm.reset()">
+      <div class="modal-box">
+        <div class="flex items-center mb-4">
+          <h3 class="text-lg font-bold flex-1">Monatsabschluss</h3>
+        </div>
+        <form class="flex flex-col gap-2" [formGroup]="closingForm">
+          <div class="form-control">
+            <div class="flex gap-2">
+              <div class="form-control flex-1">
+                <label class="label"><span class="label-text">Datum</span></label>
+                <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <div class="form-control flex-1">
+                <label class="label">
+                  <span class="label-text">Strafen für Nicht-Bezahlen</span>
+                  <input type="checkbox" class="checkbox" formControlName="includeLateFee" />
+                </label>
+              </div>
+              <div class="form-control flex-1">
+                <label class="label">
+                  <span class="label-text">Monatsbeiträge</span>
+                  <input type="checkbox" class="checkbox" formControlName="includeMonthlyFee" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </form>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn btn-ghost" (click)="resetClosingForm()">Schließen</button>
+            <button class="btn" [disabled]="!closingForm.valid" (click)="startClosing()">Abschließen</button>
           </form>
         </div>
       </div>

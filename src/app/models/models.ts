@@ -11,6 +11,7 @@ export type Player = {
   name: string;
   whatsAppName: string;
   active: { [season: string]: boolean };
+  lastClosingValue: number;
 };
 
 export type FeeType = 'fine' | 'drink' | 'misc';
@@ -51,8 +52,7 @@ export type Punishment = {
 };
 
 export type PlayerSummary = {
-  playerId: string;
-  player: string;
+  player: Player;
   drink: number;
   fine: number;
   misc: number;

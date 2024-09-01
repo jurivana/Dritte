@@ -69,12 +69,8 @@ export class FirebaseService {
       const playerSummaryMap: { [playerId: string]: PlayerSummary } = {};
       let pendingFees = 0;
       for (const player of players) {
-        if (!player.active[values.season]) {
-          continue;
-        }
         playerSummaryMap[player.id] = {
-          playerId: player.id,
-          player: player.name,
+          player,
           drink: 0,
           fine: 0,
           misc: 0,
@@ -89,7 +85,9 @@ export class FirebaseService {
           pendingFees += fee.value;
         }
       }
-      this.playerSummary = Object.values(playerSummaryMap).sort((a, b) => a.player.localeCompare(b.player));
+      this.playerSummary = Object.values(playerSummaryMap)
+        .filter(s => s.total || s.player.active[values.season])
+        .sort((a, b) => a.player.name.localeCompare(b.player.name));
       this.playerSummary$.next(this.playerSummary);
 
       this.pendingFees$.next(pendingFees);
@@ -109,9 +107,14 @@ export class FirebaseService {
     const player: Omit<Player, 'id'> = {
       name,
       whatsAppName: name,
-      active: { [this.values.season]: true }
+      active: { [this.values.season]: true },
+      lastClosingValue: 0
     };
     return addDoc(collection(this.firestore, 'players'), player);
+  }
+
+  updatePlayer(id: string, player: Partial<Player>): void {
+    updateDoc(doc(this.firestore, 'players', id), player);
   }
 
   addFee(fee: Fee): Promise<DocumentReference> {

@@ -17,6 +17,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;
   @ViewChild('paymentModal') paymentModal: ElementRef<HTMLDialogElement>;
   @ViewChild('punishmentModal') punishmentModal: ElementRef<HTMLDialogElement>;
+  @ViewChild('closingModal') closingModal: ElementRef<HTMLDialogElement>;
   @ViewChild('summaryTable') summaryTable: ElementRef<HTMLDialogElement>;
 
   players$: Observable<Player[]>;
@@ -34,6 +35,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   paymentForm: FormGroup;
 
   punishmentForm: FormGroup;
+  closingForm: FormGroup;
 
   balance: Balance;
 
@@ -90,6 +92,12 @@ export class AdminComponent implements OnInit, OnDestroy {
       id: [''],
       name: ['', Validators.required],
       value: ['', Validators.required]
+    });
+
+    this.closingForm = this.formBuilder.group({
+      date: [currDate, Validators.required],
+      includeLateFee: [true, Validators.required],
+      includeMonthlyFee: [true, Validators.required]
     });
   }
 
@@ -300,6 +308,51 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
+  startClosing(): void {
+    const date = new Date(this.closingForm.value.date);
+    const latePunishment = this.fbService.punishments.find(p => p.name === 'Zu spät bezahlt')!;
+    for (const summary of this.fbService.playerSummary) {
+      const lastMonthly = this.fbService.fees.filter(
+        f => f.comment.includes('Monatsbeitrag') && f.playerId === summary.player.id
+      )[0];
+      if (
+        this.closingForm.value.includeLateFee &&
+        summary.player.lastClosingValue > 0 &&
+        summary.total &&
+        lastMonthly &&
+        !lastMonthly.paid
+      ) {
+        this.fbService.addFee({
+          playerId: summary.player.id,
+          type: 'fine',
+          comment: latePunishment.name,
+          date,
+          paid: false,
+          quantity: 1,
+          value: latePunishment.value,
+          season: this.fbService.values.season
+        });
+      }
+
+      if (this.closingForm.value.includeMonthlyFee && summary.player.active[this.fbService.values.season]) {
+        const monthName = new Date(this.closingForm.value.date).toLocaleString('de-DE', { month: 'long' });
+        this.fbService.addFee({
+          playerId: summary.player.id,
+          type: 'misc',
+          comment: 'Monatsbeitrag ' + monthName,
+          date: new Date(this.closingForm.value.date),
+          paid: false,
+          quantity: 1,
+          value: 10,
+          season: this.fbService.values.season
+        });
+        summary.total += 10;
+      }
+
+      this.fbService.updatePlayer(summary.player.id, { lastClosingValue: summary.total });
+    }
+  }
+
   playerChanged() {
     const player = this.fbService.players.find(p => p.id === this.paymentForm.value.playerId);
     this.paymentForm.get('title')?.setValue('Einzahlung ' + player?.name);
@@ -318,6 +371,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   resetPunishmentForm(): void {
     this.punishmentForm.reset();
     this.punishmentModal.nativeElement.close();
+  }
+
+  resetClosingForm(): void {
+    this.closingForm.reset();
+    this.closingModal.nativeElement.close();
   }
 
   increaseFeeLength(): void {

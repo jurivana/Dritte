@@ -107,7 +107,7 @@ export class StatsComponent implements OnInit, OnDestroy {
       });
 
     this.playerSummary$ = combineLatest([this.fbService.playerSummary$, this.playerId$]).pipe(
-      map(([summaries, playerId]) => summaries.find(s => s.playerId === playerId)!)
+      map(([summaries, playerId]) => summaries.find(s => s.player.id === playerId)!)
     );
 
     this.players$ = combineLatest([this.fbService.players$, this.fbService.values$]).pipe(
