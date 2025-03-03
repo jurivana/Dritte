@@ -9,10 +9,10 @@ import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 
 @Component({
-    selector: 'app-admin',
-    templateUrl: './admin.component.html',
-    styleUrl: './admin.component.scss',
-    standalone: false
+  selector: 'app-admin',
+  templateUrl: './admin.component.html',
+  styleUrl: './admin.component.scss',
+  standalone: false
 })
 export class AdminComponent implements OnInit, OnDestroy {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;
@@ -167,6 +167,9 @@ export class AdminComponent implements OnInit, OnDestroy {
           });
           createdFee = feeDocument.id;
         }
+        if (value > 0) {
+          this.fbService.updatePlayer(playerId, { paid: true });
+        }
       }
 
       const payment: Payment = {
@@ -313,16 +316,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     const date = new Date(this.closingForm.value.date);
     const latePunishment = this.fbService.punishments.find(p => p.name === 'Zu spät bezahlt')!;
     for (const summary of this.fbService.playerSummary) {
-      const lastMonthly = this.fbService.fees.filter(
-        f => f.comment.includes('Monatsbeitrag') && f.playerId === summary.player.id
-      )[0];
-      if (
-        this.closingForm.value.includeLateFee &&
-        summary.player.lastClosingValue > 0 &&
-        summary.total &&
-        lastMonthly &&
-        !lastMonthly.paid
-      ) {
+      if (this.closingForm.value.includeLateFee && summary.total > 0 && !summary.player.paid) {
         this.fbService.addFee({
           playerId: summary.player.id,
           type: 'fine',
@@ -350,7 +344,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         summary.total += 10;
       }
 
-      this.fbService.updatePlayer(summary.player.id, { lastClosingValue: summary.total });
+      this.fbService.updatePlayer(summary.player.id, { paid: summary.total <= 0 });
     }
   }
 

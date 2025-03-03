@@ -108,7 +108,7 @@ export class FirebaseService {
       name,
       whatsAppName: name,
       active: { [this.values.season]: true },
-      lastClosingValue: 0
+      paid: false
     };
     return addDoc(collection(this.firestore, 'players'), player);
   }

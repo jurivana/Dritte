@@ -11,7 +11,7 @@ export type Player = {
   name: string;
   whatsAppName: string;
   active: { [season: string]: boolean };
-  lastClosingValue: number;
+  paid: boolean;
 };
 
 export type FeeType = 'fine' | 'drink' | 'misc';
