@@ -14,7 +14,7 @@ export class AuthService {
     private fbAuth: Auth,
     private router: Router
   ) {
-    authState(this.fbAuth).subscribe((user: User) => {
+    authState(this.fbAuth).subscribe(user => {
       this.isLoggedIn$.next(!!user);
     });
   }

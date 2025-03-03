@@ -9,9 +9,10 @@ import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 
 @Component({
-  selector: 'app-admin',
-  templateUrl: './admin.component.html',
-  styleUrl: './admin.component.scss'
+    selector: 'app-admin',
+    templateUrl: './admin.component.html',
+    styleUrl: './admin.component.scss',
+    standalone: false
 })
 export class AdminComponent implements OnInit, OnDestroy {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;

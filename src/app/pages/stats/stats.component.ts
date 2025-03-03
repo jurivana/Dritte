@@ -21,9 +21,10 @@ type PlayerFineSummary = {
 };
 
 @Component({
-  selector: 'app-stats',
-  templateUrl: './stats.component.html',
-  styleUrl: './stats.component.scss'
+    selector: 'app-stats',
+    templateUrl: './stats.component.html',
+    styleUrl: './stats.component.scss',
+    standalone: false
 })
 export class StatsComponent implements OnInit, OnDestroy {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;

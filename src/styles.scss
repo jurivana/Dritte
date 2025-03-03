@@ -1,8 +1,8 @@
+@use "@fontsource/rubik";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import "@fontsource/rubik";
 
 * {
   font-family: "Rubik";
@@ -34,5 +34,5 @@ input[type="number"] {
 }
 
 .dropdown .btn:focus {
-    background-color: oklch(var(--b3));
+  background-color: oklch(var(--b3));
 }
