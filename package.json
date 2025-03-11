@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "apphosting:build": "FRAMEWORK_VERSION=19 apphosting-adapter-angular-build"
   },
   "private": true,
   "dependencies": {
@@ -34,6 +35,7 @@
     "@angular-devkit/build-angular": "19.2.0",
     "@angular/cli": "19.2.0",
     "@angular/compiler-cli": "19.2.0",
+    "@apphosting/adapter-angular": "^17.2.12",
     "@types/file-saver": "^2.0.7",
     "@types/jasmine": "~5.1.0",
     "daisyui": "^4.12.10",
