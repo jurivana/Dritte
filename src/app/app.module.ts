@@ -14,11 +14,21 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MainComponent } from './components/main/main.component';
 import localeDe from '@angular/common/locales/de';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { HomeComponent } from './pages/home/home.component';
+import { JerseyComponent } from './pages/jersey/jersey.component';
 
 registerLocaleData(localeDe);
 
 @NgModule({
-  declarations: [AppComponent, MainComponent, AdminComponent, StatsComponent, LoginComponent],
+  declarations: [
+    AppComponent,
+    MainComponent,
+    AdminComponent,
+    StatsComponent,
+    LoginComponent,
+    HomeComponent,
+    JerseyComponent
+  ],
   imports: [
     CommonModule,
     BrowserModule,

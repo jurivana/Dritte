@@ -1,0 +1,524 @@
+@let isAdmin = authService.isLoggedIn$ | async;
+@if (fbService.values$ | async; as values) {
+  <div class="flex flex-col w-full items-center p-8 gap-4">
+    <!-- ? TEAMKASSE -->
+    <div class="flex flex-col max-w-full w-[500px] border-2 border-white/5 rounded-md">
+      <div class="flex justify-evenly items-center">
+        <i class="fas fa-coins fa-2xl"></i>
+        <div class="stats stats-vertical">
+          <div class="stat place-items-center">
+            <div class="stat-title">Teamkasse</div>
+            <div class="stat-value">{{ balance.total }} €</div>
+          </div>
+        </div>
+        <i class="fas fa-credit-card fa-2xl"></i>
+      </div>
+      <div class="divider my-0 h-0.5"></div>
+      <div class="flex justify-between">
+        <div class="stats grid-cols-2 w-full">
+          <div class="stat place-items-center">
+            <div class="stat-title">Bargeld</div>
+            <div class="stat-value text-lg sm:text-2xl">{{ balance.cash }} €</div>
+          </div>
+          <div class="stat place-items-center">
+            <div class="stat-title">Konto</div>
+            <div class="stat-value text-lg sm:text-2xl">{{ balance.bank }} €</div>
+          </div>
+        </div>
+      </div>
+      <div class="divider my-0 h-0.5"></div>
+      <div class="stats">
+        <div class="stat place-items-center py-2">
+          <div class="stat-title">Offene Beiträge</div>
+          <div class="stat-value text-lg sm:text-2xl">{{ fbService.pendingFees$ | async }} €</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ? UMSÄTZE -->
+    <div class="max-w-full w-[500px] join join-vertical my-4">
+      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+        <span class="flex-1 font-bold">Umsätze</span>
+        @if (isAdmin) {
+          <button class="btn" onclick="paymentModal.showModal()">
+            <i class="fas fa-plus"></i>
+          </button>
+        }
+      </div>
+      <table class="table table-zebra table-fixed join-item">
+        <tbody>
+          @for (payment of payments$ | async; track payment.id) {
+            <tr
+              class="hover"
+              [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
+              (click)="isAdmin ? editPayment(payment) : null"
+            >
+              <td class="flex gap-4 items-center">
+                <i class="fa-fw fas fa-{{ payment.value >= 0 ? 'circle-plus' : 'circle-minus' }}"></i>
+                <div class="flex flex-col justify-center flex-1 min-w-0">
+                  <div class="font-bold text-ellipsis overflow-hidden text-nowrap">{{ payment.title }}</div>
+                  <div class="flex flex-row items-center gap-2">
+                    <div class="badge badge-neutral badge-sm gap-1 px-2">
+                      <i class="far fa-calendar fa-2xs"></i>
+                      {{ payment.date | date: "shortDate" }}
+                    </div>
+                    <div class="badge badge-neutral badge-sm gap-1 px-2">
+                      @if (payment.type === "cash") {
+                        <i class="fas fa-coins fa-2xs"></i>
+                        Bargeld
+                      } @else if (payment.type === "bank") {
+                        <i class="fas fa-credit-card fa-2xs"></i>
+                        Konto
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="font-bold">{{ payment.value }} €</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (canExtendPayments) {
+        <button class="btn join-item" (click)="increasePaymentLength()">
+          <i class="fas fa-angle-down"></i>
+          Mehr laden
+        </button>
+      }
+    </div>
+
+    <!-- ? BEITRÄGE -->
+    <div class="max-w-full w-[500px] join join-vertical my-4">
+      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+        <span class="flex-1 font-bold">Beiträge</span>
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" role="button" class="btn">
+            <i class="fas {{ (feeFilter$ | async) ? 'fa-filter-circle-xmark' : 'fa-filter' }}"></i>
+          </div>
+          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+            <li>
+              <a
+                class="py-4"
+                [ngClass]="{ 'bg-base-200': (feeFilter$ | async) === 'fine' }"
+                (click)="toggleFilter('fine')"
+              >
+                <i class="fas fa-gavel fa-fw"></i>
+                Strafen
+              </a>
+            </li>
+            <li>
+              <a
+                class="py-4"
+                [ngClass]="{ 'bg-base-200': (feeFilter$ | async) === 'misc' }"
+                (click)="toggleFilter('misc')"
+              >
+                <i class="fas fa-coins fa-fw"></i>
+                Sonstiges
+              </a>
+            </li>
+            <li>
+              <a
+                class="py-4"
+                [ngClass]="{ 'bg-base-200': (feeFilter$ | async) === 'drink' }"
+                (click)="toggleFilter('drink')"
+              >
+                <i class="fas fa-glass-water fa-fw"></i>
+                Getränke
+              </a>
+            </li>
+          </ul>
+        </div>
+        <button class="btn" onclick="catalogModal.showModal()">
+          <i class="fas fa-book"></i>
+        </button>
+        @if (isAdmin) {
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn"><i class="fas fa-plus"></i></div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+              <li>
+                <a class="py-4" onclick="feeModal.showModal()">
+                  <i class="fas fa-gavel fa-fw"></i>
+                  Beitrag
+                </a>
+              </li>
+              <li>
+                <a class="py-4" onclick="drinkInput.click()">
+                  <i class="fas fa-glass-water fa-fw"></i>
+                  Getränke
+                  <input id="drinkInput" type="file" class="hidden" (change)="importDrinks($event)" />
+                </a>
+              </li>
+              <li>
+                <a class="py-4" onclick="closingModal.showModal(); closingModal.focus(); closingModal.blur()">
+                  <i class="fas fa-forward-step fa-fw"></i>
+                  Monatsabschluss
+                </a>
+              </li>
+            </ul>
+          </div>
+        }
+      </div>
+      <table class="table table-zebra table-fixed join-item">
+        <tbody>
+          @for (fee of fees$ | async; track fee.id) {
+            <tr
+              class="hover"
+              [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
+              (click)="isAdmin ? editFee(fee) : null"
+            >
+              <td class="flex gap-4 items-center" [ngClass]="{ 'opacity-50': fee.paid }">
+                @if (fee.paid) {
+                  <i class="fa-fw fas fa-circle-check"></i>
+                } @else {
+                  <i class="fa-fw {{ feeTypeIcon[fee.type] }}"></i>
+                }
+                <div class="flex flex-col justify-center flex-1 min-w-0">
+                  <div class="flex flex-row items-center gap-2">
+                    <div class="font-bold">{{ fee.playerName }}</div>
+                    <div class="badge badge-neutral badge-sm px-2">{{ fee.quantity }} x</div>
+                  </div>
+                  <div class="flex flex-row items-center gap-2">
+                    <div class="badge badge-neutral badge-sm gap-1 px-2">
+                      <i class="far fa-calendar fa-2xs"></i>
+                      {{ fee.date | date: "shortDate" }}
+                    </div>
+                    <div class="text-sm opacity-70 text-ellipsis text-nowrap overflow-hidden" [title]="fee.comment">
+                      {{ fee.comment }}
+                    </div>
+                  </div>
+                </div>
+                <div class="font-bold">{{ fee.value }} €</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (canExtendFees) {
+        <button class="btn join-item" (click)="increaseFeeLength()">
+          <i class="fas fa-angle-down"></i>
+          Mehr laden
+        </button>
+      }
+    </div>
+
+    <!-- ? ÜBERSICHT -->
+    <div class="max-w-full w-[800px] join join-vertical my-4">
+      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+        <span class="flex-1 font-bold">Übersicht</span>
+        @if (isAdmin) {
+          <button class="btn" (click)="exportSummary()">
+            <i class="fas fa-file-export"></i>
+          </button>
+        }
+      </div>
+      <table #summaryTable class="table table-zebra table-fixed table-pin-rows">
+        <thead>
+          <tr>
+            <th class="w-24 sm:w-20">Name</th>
+            <th class="w-14 text-right pr-0">Getränke</th>
+            <th class="w-14 text-right pr-0">Strafen</th>
+            <th class="w-14 text-right pr-0">Sonstiges</th>
+            <th class="w-14 text-right">Gesamt</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (summary of fbService.playerSummary$ | async; track $index) {
+            <tr
+              class="hover cursor-pointer active:!bg-[oklch(var(--b3))]"
+              routerLink="stats/{{ fbService.values.season }}/{{ summary.player.id }}"
+              [ngClass]="{ 'opacity-50': summary.player.paid }"
+            >
+              <th class="pr-0">
+                {{ summary.player.name }}
+                @if (summary.player.paid) {
+                  <i class="fa-fw fas fa-circle-check"></i>
+                }
+              </th>
+              <td class="text-right px-0">{{ summary.drink }}</td>
+              <td class="text-right px-0">{{ summary.fine }}</td>
+              <td class="text-right px-0">{{ summary.misc }}</td>
+              <th class="text-right">{{ summary.total }}</th>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ? UMSATZ-DIALOG -->
+  <dialog #paymentModal id="paymentModal" class="modal" (close)="paymentForm.reset()">
+    <div class="modal-box">
+      <div class="flex items-center mb-4">
+        <h3 class="text-lg font-bold flex-1">Umsatz {{ paymentForm.value.id ? "bearbeiten" : "hinzufügen" }}</h3>
+        @if (paymentForm.value.id) {
+          <button class="btn btn-ghost btn-circle" (click)="deletePayment()">
+            <i class="fas fa-trash"></i>
+          </button>
+        }
+      </div>
+      <form class="flex flex-col gap-2" [formGroup]="paymentForm">
+        <div class="form-control">
+          <div class="flex gap-2">
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Art</span></label>
+              <select
+                class="select select-bordered !outline-none mb-2"
+                formControlName="from"
+                [attr.disabled]="paymentForm.value.id ? true : null"
+              >
+                <option value="player">Spieler</option>
+                <option value="misc">Sonstiges</option>
+              </select>
+            </div>
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Datum</span></label>
+              <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+            </div>
+          </div>
+          @if (paymentForm.value.from === "misc" || paymentForm.value.id) {
+            <input
+              type="text"
+              class="input input-bordered !outline-none"
+              formControlName="title"
+              [readOnly]="paymentForm.value.id && paymentForm.value.from === 'player'"
+              (focus)="select($event)"
+            />
+          } @else {
+            <select class="select select-bordered !outline-none" formControlName="playerId" (change)="playerChanged()">
+              @for (player of players$ | async; track player.id) {
+                <option [value]="player.id">{{ player.name }}</option>
+              }
+            </select>
+          }
+        </div>
+        <div class="flex gap-2">
+          <div class="form-control min-w-0 flex-1">
+            <label class="label"><span class="label-text">Bargeld / Konto</span></label>
+            <select class="select select-bordered !outline-none" formControlName="type">
+              <option value="cash">Bargeld</option>
+              <option value="bank">Konto</option>
+            </select>
+          </div>
+          <div class="form-control min-w-0 flex-1">
+            <label class="label"><span class="label-text">Wert</span></label>
+            <input
+              type="number"
+              class="input input-bordered !outline-none text-end"
+              formControlName="value"
+              [readOnly]="paymentForm.value.id && paymentForm.value.from === 'player'"
+              (focus)="select($event)"
+            />
+          </div>
+        </div>
+      </form>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2">
+          <button class="btn btn-ghost" (click)="resetPaymentForm()">Schließen</button>
+          <button class="btn" [disabled]="!paymentForm.valid" (click)="savePayment()">Speichern</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ? BEITRAGS-DIALOG -->
+  <dialog #feeModal id="feeModal" class="modal" (close)="feeForm.reset()">
+    <div class="modal-box">
+      <div class="flex items-center mb-4">
+        <h3 class="text-lg font-bold flex-1">Beitrag {{ feeForm.value.id ? "bearbeiten" : "hinzufügen" }}</h3>
+        @if (feeForm.value.id) {
+          <button class="btn btn-ghost btn-circle" (click)="deleteFee()">
+            <i class="fas fa-trash"></i>
+          </button>
+        }
+      </div>
+      <form class="flex flex-col gap-2" [formGroup]="feeForm">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Spieler</span></label>
+          <select class="select select-bordered !outline-none" formControlName="playerId">
+            @if (!feeForm.value.id) {
+              <option value="all">Alle</option>
+            }
+            @for (player of players$ | async; track player.id) {
+              <option [value]="player.id">{{ player.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-control">
+          <div class="flex gap-2">
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Art</span></label>
+              <select class="select select-bordered !outline-none mb-2" formControlName="type">
+                <option value="fine">Strafe</option>
+                <option value="misc">Sonstiges</option>
+                <option value="drink" hidden>Getränk</option>
+              </select>
+            </div>
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Datum</span></label>
+              <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+            </div>
+          </div>
+          @if (feeForm.value.type === "misc") {
+            <input
+              type="text"
+              class="input input-bordered !outline-none"
+              formControlName="comment"
+              (focus)="select($event)"
+            />
+          } @else if (feeForm.value.type === "fine") {
+            <select
+              class="select select-bordered !outline-none mb-2"
+              formControlName="punishment"
+              (change)="punishmentChanged()"
+            >
+              @for (punishment of fbService.punishments$ | async; track punishment.id) {
+                <option [value]="punishment.id">{{ punishment.name }}</option>
+              }
+            </select>
+          }
+        </div>
+        <div class="flex gap-2">
+          <div class="form-control min-w-0 flex-1">
+            <label class="label"><span class="label-text">Anzahl</span></label>
+            <input
+              type="number"
+              class="input input-bordered !outline-none text-end"
+              min="1"
+              formControlName="quantity"
+              (change)="updateValue()"
+              (focus)="select($event)"
+            />
+          </div>
+          <div class="form-control min-w-0 flex-1">
+            <label class="label"><span class="label-text">Wert</span></label>
+            <input
+              type="number"
+              class="input input-bordered !outline-none text-end"
+              formControlName="value"
+              [readOnly]="feeForm.value.type === 'fine'"
+              (focus)="select($event)"
+            />
+          </div>
+        </div>
+      </form>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2">
+          <button class="btn btn-ghost" (click)="resetFeeForm()">Schließen</button>
+          <button class="btn" [disabled]="!feeForm.valid" (click)="saveFee()">Speichern</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ? STRAFENKATALOG -->
+  <dialog #catalogModal id="catalogModal" class="modal">
+    <div class="modal-box">
+      <div class="flex items-center mb-4">
+        <h3 class="text-lg font-bold flex-1">Strafenkatalog</h3>
+        @if (isAdmin) {
+          <button class="btn btn-ghost btn-circle" (click)="punishmentModal.showModal()">
+            <i class="fas fa-plus"></i>
+          </button>
+        }
+      </div>
+      <table class="table table-zebra table-fixed join-item">
+        <tbody>
+          @for (punishment of fbService.punishments$ | async; track punishment.id) {
+            <tr
+              class="hover"
+              [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
+              (click)="isAdmin ? editPunishment(punishment) : null"
+            >
+              <td class="flex gap-4 items-center">
+                <div class="font-bold flex-1">{{ punishment.name }}</div>
+                <div class="font-bold">{{ punishment.value }} €</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button></button>
+    </form>
+  </dialog>
+
+  <!-- ? Strafen-Dialog -->
+  <dialog #punishmentModal id="punishmentModal" class="modal" (close)="punishmentForm.reset()">
+    <div class="modal-box">
+      <div class="flex items-center mb-4">
+        <h3 class="text-lg font-bold flex-1">Strafe {{ punishmentForm.value.id ? "bearbeiten" : "hinzufügen" }}</h3>
+        @if (punishmentForm.value.id) {
+          <button class="btn btn-ghost btn-circle" (click)="deletePunishment()">
+            <i class="fas fa-trash"></i>
+          </button>
+        }
+      </div>
+      <form class="flex flex-col gap-2" [formGroup]="punishmentForm">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Grund</span></label>
+          <input
+            type="text"
+            class="input input-bordered !outline-none"
+            formControlName="name"
+            (focus)="select($event)"
+          />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Wert</span></label>
+          <input
+            type="number"
+            class="input input-bordered !outline-none text-end"
+            formControlName="value"
+            (focus)="select($event)"
+          />
+        </div>
+      </form>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2">
+          <button class="btn btn-ghost" (click)="resetPunishmentForm()">Schließen</button>
+          <button class="btn" [disabled]="!punishmentForm.valid" (click)="savePunishment()">Speichern</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ? MONATSABSCHLUSS-DIALOG -->
+  <dialog #closingModal id="closingModal" class="modal" (close)="closingForm.reset()">
+    <div class="modal-box">
+      <div class="flex items-center mb-4">
+        <h3 class="text-lg font-bold flex-1">Monatsabschluss</h3>
+      </div>
+      <form class="flex flex-col gap-2" [formGroup]="closingForm">
+        <div class="form-control">
+          <div class="flex gap-2">
+            <div class="form-control flex-1">
+              <label class="label"><span class="label-text">Datum</span></label>
+              <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+            </div>
+          </div>
+          <div class="flex gap-2 mt-4">
+            <div class="form-control flex-1">
+              <label class="label">
+                <span class="label-text">Strafen für Nicht-Bezahlen</span>
+                <input type="checkbox" class="checkbox" formControlName="includeLateFee" />
+              </label>
+            </div>
+            <div class="form-control flex-1">
+              <label class="label">
+                <span class="label-text">Monatsbeiträge</span>
+                <input type="checkbox" class="checkbox" formControlName="includeMonthlyFee" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </form>
+      <div class="modal-action">
+        <form method="dialog" class="flex gap-2">
+          <button class="btn btn-ghost" (click)="resetClosingForm()">Schließen</button>
+          <button class="btn" [disabled]="!closingForm.valid" (click)="startClosing()">Abschließen</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+}

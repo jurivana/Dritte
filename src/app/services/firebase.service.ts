@@ -88,6 +88,10 @@ export class FirebaseService {
       this.playerSummary = Object.values(playerSummaryMap)
         .filter(s => s.total || s.player.active[values.season])
         .sort((a, b) => a.player.name.localeCompare(b.player.name));
+      const paidPlayerSummaries = Object.values(playerSummaryMap).filter(s => s.total <= 0 && !s.player.paid);
+      for (const paidPlayerSummary of paidPlayerSummaries) {
+        this.updatePlayer(paidPlayerSummary.player.id, { paid: true });
+      }
       this.playerSummary$.next(this.playerSummary);
 
       this.pendingFees$.next(pendingFees);
