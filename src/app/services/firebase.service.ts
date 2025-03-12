@@ -11,7 +11,17 @@ import {
   updateDoc
 } from '@angular/fire/firestore';
 import { Observable, ReplaySubject, combineLatest } from 'rxjs';
-import { Balance, Fee, Payment, Player, PlayerSummary, Punishment, Values } from '../models/models';
+import {
+  Balance,
+  Fee,
+  Jersey,
+  JerseySummary,
+  Payment,
+  Player,
+  PlayerSummary,
+  Punishment,
+  Values
+} from '../models/models';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +37,10 @@ export class FirebaseService {
   fees$ = new ReplaySubject<Fee[]>(1);
   payments: Payment[];
   payments$ = new ReplaySubject<Payment[]>(1);
+  jerseys: Jersey[];
+  jerseys$ = new ReplaySubject<Jersey[]>(1);
+  jerseySummary: JerseySummary[];
+  jerseySummary$ = new ReplaySubject<JerseySummary[]>(1);
   playerSummary: PlayerSummary[];
   playerSummary$ = new ReplaySubject<PlayerSummary[]>(1);
   pendingFees$ = new ReplaySubject<number>(1);
@@ -38,8 +52,9 @@ export class FirebaseService {
       collectionData(collection(this.firestore, 'players'), { idField: 'id' }) as Observable<Player[]>,
       collectionData(collection(this.firestore, 'fees'), { idField: 'id' }) as Observable<Fee[]>,
       collectionData(collection(this.firestore, 'payments'), { idField: 'id' }) as Observable<Payment[]>,
-      collectionData(collection(this.firestore, 'punishments'), { idField: 'id' }) as Observable<Punishment[]>
-    ]).subscribe(([values, players, fees, payments, punishments]) => {
+      collectionData(collection(this.firestore, 'punishments'), { idField: 'id' }) as Observable<Punishment[]>,
+      collectionData(collection(this.firestore, 'jerseys'), { idField: 'id' }) as Observable<Jersey[]>
+    ]).subscribe(([values, players, fees, payments, punishments, jerseys]) => {
       this.values = values;
       this.values$.next(values);
 
@@ -62,6 +77,34 @@ export class FirebaseService {
         }))
         .sort((a, b) => b.date - a.date || a.title.localeCompare(b.title));
       this.payments$.next(this.payments);
+
+      this.jerseys = jerseys
+        .filter(jersey => jersey.season === values.season)
+        .map(jersey => ({
+          ...jersey,
+          date: jersey.date?.toDate(),
+          playerName: players.find(player => player.id === jersey.playerId)?.name
+        }))
+        .sort((a, b) => b.date - a.date);
+      this.jerseys$.next(this.jerseys);
+
+      const jerseySummaryMap: { [playerId: string]: JerseySummary } = {};
+      for (const player of players.filter(player => player.active[values.season] && !player.coach)) {
+        jerseySummaryMap[player.id] = { player, last: null, amount: 0 };
+      }
+      for (const jersey of this.jerseys) {
+        const jerseyPlayer = jerseySummaryMap[jersey.playerId];
+        if (jerseyPlayer) {
+          jerseyPlayer.amount += 1;
+          if (jersey.date) {
+            jerseyPlayer.last = new Date(Math.max(jerseyPlayer.last, jersey.date));
+          }
+        }
+      }
+      this.jerseySummary = Object.values(jerseySummaryMap).sort(
+        (a, b) => a.amount - b.amount || a.last - b.last || a.player.name.localeCompare(b.player.name)
+      );
+      this.jerseySummary$.next(this.jerseySummary);
 
       this.punishments = punishments.sort((a, b) => a.name.localeCompare(b.name));
       this.punishments$.next(this.punishments);
@@ -143,6 +186,18 @@ export class FirebaseService {
 
   deletePayment(id: string): void {
     deleteDoc(doc(this.firestore, 'payments', id));
+  }
+
+  addJersey(jersey: Jersey): Promise<DocumentReference> {
+    return addDoc(collection(this.firestore, 'jerseys'), jersey);
+  }
+
+  updateJersey(id: string, jersey: Partial<Jersey>): void {
+    updateDoc(doc(this.firestore, 'jerseys', id), jersey);
+  }
+
+  deleteJersey(id: string): void {
+    deleteDoc(doc(this.firestore, 'jerseys', id));
   }
 
   addPunishment(punishment: Punishment): void {

@@ -7,11 +7,27 @@
       class="h-10 mr-2 cursor-pointer opacity-80"
       routerLink="/"
     />
-    @if (router.url.startsWith("/stats")) {
-      <button class="btn" routerLink="/"><i class="fas fa-house"></i> Start</button>
-    } @else {
-      <button class="btn" routerLink="/stats"><i class="fas fa-chart-simple"></i> Statistiken</button>
-    }
+    <div class="join">
+      <button
+        class="btn join-item"
+        routerLink="/"
+        [routerLinkActive]="'btn-active'"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <i class="fas fa-house"></i>
+      </button>
+      <button class="btn join-item" routerLink="/stats" [routerLinkActive]="'btn-active'">
+        <i class="fas fa-chart-simple"></i>
+      </button>
+      <button class="btn join-item" routerLink="/jersey" [routerLinkActive]="'btn-active'">
+        <i class="fas fa-shirt"></i>
+      </button>
+      @if (authService.isLoggedIn$ | async) {
+        <button class="btn join-item" routerLink="/admin" [routerLinkActive]="'btn-active'">
+          <i class="fas fa-gears"></i>
+        </button>
+      }
+    </div>
     @if (authService.isLoggedIn$ | async) {
       <button class="btn btn-circle" (click)="authService.logout()">
         <i class="fas fa-right-from-bracket"></i>

@@ -1,1 +1,112 @@
-<p>jersey works!</p>
+@let isAdmin = authService.isLoggedIn$ | async;
+<div class="flex flex-col w-full items-center p-8 gap-4">
+  <!-- ? ÜBERSICHT -->
+  <div class="max-w-full w-[500px] join join-vertical my-4">
+    <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+      <span class="flex-1 font-bold">Übersicht</span>
+    </div>
+    <table #summaryTable class="table table-zebra table-fixed table-pin-rows">
+      <thead>
+        <tr>
+          <th class="w-24">Name</th>
+          <th class="w-14 text-right pr-0">Anzahl</th>
+          <th class="w-14 text-right">Zuletzt</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (summary of jerseySummary$ | async; track $index) {
+          <tr class="hover cursor-pointer active:!bg-[oklch(var(--b3))]">
+            <th class="pr-0">
+              {{ summary.player.name }}
+            </th>
+            <td class="text-right px-0">{{ summary.amount }}</td>
+            <th class="text-right">
+              @if (summary.last) {
+                <div class="badge badge-neutral badge-md gap-1 px-2">
+                  <i class="far fa-calendar fa-2xs"></i>
+                  {{ summary.last | date: "shortDate" }}
+                </div>
+              } @else {
+                -
+              }
+            </th>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (canExtendSummary) {
+      <button class="btn join-item" (click)="increaseSummaryLength()">
+        <i class="fas fa-angle-down"></i>
+        Mehr laden
+      </button>
+    }
+  </div>
+
+  <!-- ? TRIKOTWÄSCHEN -->
+  <div class="max-w-full w-[500px] join join-vertical my-4">
+    <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+      <span class="flex-1 font-bold">Trikotwäschen</span>
+      @if (isAdmin) {
+        <button class="btn" onclick="jerseyModal.showModal()">
+          <i class="fas fa-plus"></i>
+        </button>
+      }
+    </div>
+    <table class="table table-zebra table-fixed join-item">
+      <tbody>
+        @for (jersey of fbService.jerseys$ | async; track jersey.id) {
+          @if (jersey.date) {
+            <tr
+              class="hover"
+              [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
+              (click)="isAdmin ? editJersey(jersey) : null"
+            >
+              <td class="flex gap-4 items-center">
+                <i class="fa-fw fas fa-shirt"></i>
+                <div class="font-bold flex-1 min-w-0">{{ jersey.playerName }}</div>
+                <div class="badge badge-neutral badge-md gap-1 px-2">
+                  <i class="far fa-calendar fa-2xs"></i>
+                  {{ jersey.date | date: "shortDate" }}
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ? TRIKOTWÄSCHE-DIALOG -->
+<dialog #jerseyModal id="jerseyModal" class="modal" (close)="resetJerseyForm()">
+  <div class="modal-box">
+    <div class="flex items-center mb-4">
+      <h3 class="text-lg font-bold flex-1">Trikotwäsche {{ jerseyForm.value.id ? "bearbeiten" : "hinzufügen" }}</h3>
+      @if (jerseyForm.value.id) {
+        <button class="btn btn-ghost btn-circle" (click)="deleteJersey()">
+          <i class="fas fa-trash"></i>
+        </button>
+      }
+    </div>
+    <form class="flex gap-2" [formGroup]="jerseyForm">
+      <div class="form-control flex-1">
+        <label class="label"><span class="label-text">Spieler</span></label>
+        <select class="select select-bordered !outline-none" formControlName="playerId">
+          @for (player of players(); track player.id) {
+            <option [value]="player.id">{{ player.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-control flex-1">
+        <label class="label"><span class="label-text">Datum</span></label>
+        <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+      </div>
+    </form>
+    <div class="modal-action">
+      <form method="dialog" class="flex gap-2">
+        <button class="btn btn-ghost" (click)="resetJerseyForm()">Schließen</button>
+        <button class="btn" [disabled]="!jerseyForm.valid" (click)="saveJersey()">Speichern</button>
+      </form>
+    </div>
+  </div>
+</dialog>

@@ -12,6 +12,7 @@ export type Player = {
   whatsAppName: string;
   active: { [season: string]: boolean };
   paid: boolean;
+  coach?: boolean;
 };
 
 export type FeeType = 'fine' | 'drink' | 'misc';
@@ -43,6 +44,20 @@ export type Payment = {
   type: PaymentType;
   paidFees?: string[];
   createdFee?: string;
+};
+
+export type Jersey = {
+  id?: string;
+  season: string;
+  playerId: string;
+  date?: any;
+  playerName?: string;
+};
+
+export type JerseySummary = {
+  player: Player;
+  last: any;
+  amount: number;
 };
 
 export type Punishment = {
