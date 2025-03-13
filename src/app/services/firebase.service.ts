@@ -150,13 +150,7 @@ export class FirebaseService {
     });
   }
 
-  addPlayer(name: string): Promise<DocumentReference> {
-    const player: Omit<Player, 'id'> = {
-      name,
-      whatsAppName: name,
-      active: { [this.values.season]: true },
-      paid: false
-    };
+  addPlayer(player: Omit<Player, 'id'>): Promise<DocumentReference> {
     return addDoc(collection(this.firestore, 'players'), player);
   }
 

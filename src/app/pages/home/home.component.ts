@@ -29,6 +29,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   canExtendFees: boolean;
   feeTypeIcon = FeeTypeIcon;
   feeForm: FormGroup;
+  feePlayerIds = new Set<string>();
 
   payments$: Observable<Payment[]>;
   paymentLength$ = new BehaviorSubject<number>(7);
@@ -186,7 +187,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.resetPaymentForm();
   }
 
-  async saveFee() {
+  saveFee() {
     const { id, playerId, date, type, comment, quantity, value } = this.feeForm.value;
     if (!(playerId && date && type && comment && quantity && value)) {
       this.resetFeeForm();
@@ -213,9 +214,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         season: this.fbService.values.season,
         paid: false
       };
-      if (playerId === 'all') {
-        for (const player of await firstValueFrom(this.players$)) {
-          this.fbService.addFee({ ...fee, playerId: player.id });
+      if (playerId === 'multiple') {
+        for (const playerId of this.feePlayerIds) {
+          this.fbService.addFee({ ...fee, playerId });
         }
       } else {
         this.fbService.addFee(fee);
@@ -303,13 +304,24 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.resetPunishmentForm();
   }
 
-  updateValue() {
+  updateValue(): void {
     if (this.feeForm.value.type === 'fine') {
       const punishment = this.fbService.punishments.find(p => p.id === this.feeForm.value.punishment);
       if (punishment) {
         this.feeForm.get('value')?.setValue(this.feeForm.value.quantity * punishment.value);
       }
     }
+  }
+
+  async checkAllPlayers(): Promise<void> {
+    const players = await firstValueFrom(this.players$);
+    for (const player of players) {
+      this.feePlayerIds.add(player.id);
+    }
+  }
+
+  uncheckAllPlayers(): void {
+    this.feePlayerIds.clear();
   }
 
   startClosing(): void {
@@ -355,6 +367,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   resetFeeForm(): void {
     this.feeForm.reset();
+    this.feePlayerIds.clear();
     this.feeModal.nativeElement.close();
   }
 
@@ -384,6 +397,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   select(event: FocusEvent): void {
     const target = event.target as HTMLInputElement;
     target.select();
+  }
+
+  toggleFeePlayerId(playerId: string): void {
+    if (!this.feePlayerIds.delete(playerId)) {
+      this.feePlayerIds.add(playerId);
+    }
   }
 
   importDrinks(event: Event) {
@@ -424,8 +443,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         const player = this.fbService.players.find(player => player.whatsAppName === name);
         let playerId = player?.id;
         if (!player) {
-          const doc = await this.fbService.addPlayer(name);
-          playerId = doc.id;
+          continue;
         }
 
         this.fbService.addFee({

@@ -8,28 +8,28 @@
     <table #summaryTable class="table table-zebra table-fixed table-pin-rows">
       <thead>
         <tr>
-          <th class="w-24">Name</th>
-          <th class="w-14 text-right pr-0">Anzahl</th>
-          <th class="w-14 text-right">Zuletzt</th>
+          <th class="w-24 pr-0">Name</th>
+          <th class="w-8 text-right px-0">Anzahl</th>
+          <th class="w-20 text-right pl-0">Zuletzt</th>
         </tr>
       </thead>
       <tbody>
         @for (summary of jerseySummary$ | async; track $index) {
-          <tr class="hover cursor-pointer active:!bg-[oklch(var(--b3))]">
+          <tr class="hover active:!bg-[oklch(var(--b3))]">
             <th class="pr-0">
               {{ summary.player.name }}
             </th>
             <td class="text-right px-0">{{ summary.amount }}</td>
-            <th class="text-right">
-              @if (summary.last) {
+            @if (summary.last) {
+              <td class="text-right pr-2 pl-0">
                 <div class="badge badge-neutral badge-md gap-1 px-2">
                   <i class="far fa-calendar fa-2xs"></i>
                   {{ summary.last | date: "shortDate" }}
                 </div>
-              } @else {
-                -
-              }
-            </th>
+              </td>
+            } @else {
+              <td class="text-right pl-0">-</td>
+            }
           </tr>
         }
       </tbody>
@@ -61,7 +61,7 @@
               [ngClass]="{ 'cursor-pointer active:!bg-[oklch(var(--b3))]': isAdmin }"
               (click)="isAdmin ? editJersey(jersey) : null"
             >
-              <td class="flex gap-4 items-center">
+              <td class="flex gap-4 pr-2 items-center">
                 <i class="fa-fw fas fa-shirt"></i>
                 <div class="font-bold flex-1 min-w-0">{{ jersey.playerName }}</div>
                 <div class="badge badge-neutral badge-md gap-1 px-2">
@@ -89,7 +89,7 @@
       }
     </div>
     <form class="flex gap-2" [formGroup]="jerseyForm">
-      <div class="form-control flex-1">
+      <div class="form-control flex-1 min-w-0">
         <label class="label"><span class="label-text">Spieler</span></label>
         <select class="select select-bordered !outline-none" formControlName="playerId">
           @for (player of players(); track player.id) {
@@ -97,7 +97,7 @@
           }
         </select>
       </div>
-      <div class="form-control flex-1">
+      <div class="form-control flex-1 min-w-0">
         <label class="label"><span class="label-text">Datum</span></label>
         <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
       </div>

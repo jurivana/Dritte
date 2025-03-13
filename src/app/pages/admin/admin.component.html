@@ -1,1 +1,38 @@
-<div class="flex justify-center w-full">Kommt bald...</div>
+@if (authService.isLoggedIn$ | async) {
+  <div class="flex flex-col w-full items-center p-8 gap-4">
+    <div class="max-w-full w-[500px] join join-vertical my-4">
+      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+        <span class="flex-1 font-bold">Aktive Spieler</span>
+      </div>
+      <table class="table table-zebra table-fixed join-item">
+        <tbody>
+          @for (player of activePlayers(); track player.id) {
+            <tr class="hover cursor-pointer active:!bg-[oklch(var(--b3))]" (click)="editPlayer(player)">
+              <td class="flex gap-4 pr-2 items-center">
+                <i class="fa-fw fas" [ngClass]="player.coach ? 'fa-user-tie' : 'fa-user'"></i>
+                <div class="font-bold flex-1 min-w-0">{{ player.name }}</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="max-w-full w-[500px] join join-vertical my-4">
+      <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
+        <span class="flex-1 font-bold">Spielerarchiv</span>
+      </div>
+      <table class="table table-zebra table-fixed join-item">
+        <tbody>
+          @for (player of archivePlayers(); track player.id) {
+            <tr class="hover cursor-pointer active:!bg-[oklch(var(--b3))] opacity-70" (click)="editPlayer(player)">
+              <td class="flex gap-4 pr-2 items-center">
+                <i class="fa-fw fas" [ngClass]="player.coach ? 'fa-user-tie' : 'fa-user'"></i>
+                <div class="font-bold flex-1 min-w-0">{{ player.name }}</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

@@ -11,7 +11,7 @@ export type Player = {
   name: string;
   whatsAppName: string;
   active: { [season: string]: boolean };
-  paid: boolean;
+  paid?: boolean;
   coach?: boolean;
 };
 

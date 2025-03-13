@@ -19,7 +19,7 @@ export class JerseyComponent implements OnInit {
   jerseyForm = this.formBuilder.group({
     id: [''],
     playerId: ['', Validators.required],
-    date: [this.dateForInput(new Date()), Validators.required]
+    date: [this.dateForInput(new Date())]
   });
 
   jerseySummary$ = new Observable<JerseySummary[]>();
@@ -52,14 +52,18 @@ export class JerseyComponent implements OnInit {
 
   saveJersey(): void {
     let { id, playerId } = this.jerseyForm.value;
-    if (!playerId || !this.jerseyForm.value.date) {
+    if (!playerId) {
       return;
     }
-    const date = new Date(this.jerseyForm.value.date);
+
+    const jersey: Partial<Jersey> = { playerId };
+    if (this.jerseyForm.value.date) {
+      jersey.date = new Date(this.jerseyForm.value.date);
+    }
     if (id) {
-      this.fbService.updateJersey(id, { playerId, date });
+      this.fbService.updateJersey(id, jersey);
     } else {
-      this.fbService.addJersey({ playerId, date, season: this.fbService.values.season });
+      this.fbService.addJersey({ ...(jersey as Jersey), season: this.fbService.values.season });
     }
     this.resetJerseyForm();
   }

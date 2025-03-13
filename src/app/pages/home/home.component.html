@@ -214,11 +214,11 @@
       <table #summaryTable class="table table-zebra table-fixed table-pin-rows">
         <thead>
           <tr>
-            <th class="w-24 sm:w-20">Name</th>
-            <th class="w-14 text-right pr-0">Getränke</th>
-            <th class="w-14 text-right pr-0">Strafen</th>
-            <th class="w-14 text-right pr-0">Sonstiges</th>
-            <th class="w-14 text-right">Gesamt</th>
+            <th class="w-24 sm:w-20 pr-0">Name</th>
+            <th class="w-14 text-right px-0">Getränke</th>
+            <th class="w-14 text-right px-0">Strafen</th>
+            <th class="w-14 text-right px-0">Sonstiges</th>
+            <th class="w-14 text-right pl-0">Gesamt</th>
           </tr>
         </thead>
         <tbody>
@@ -237,7 +237,7 @@
               <td class="text-right px-0">{{ summary.drink }}</td>
               <td class="text-right px-0">{{ summary.fine }}</td>
               <td class="text-right px-0">{{ summary.misc }}</td>
-              <th class="text-right">{{ summary.total }}</th>
+              <th class="text-right pl-0">{{ summary.total }}</th>
             </tr>
           }
         </tbody>
@@ -334,15 +334,48 @@
       <form class="flex flex-col gap-2" [formGroup]="feeForm">
         <div class="form-control">
           <label class="label"><span class="label-text">Spieler</span></label>
-          <select class="select select-bordered !outline-none" formControlName="playerId">
+          <select
+            class="select select-bordered !outline-none"
+            formControlName="playerId"
+            (change)="feePlayerIds.clear()"
+          >
             @if (!feeForm.value.id) {
-              <option value="all">Alle</option>
+              <option value="multiple">Mehrere</option>
             }
             @for (player of players$ | async; track player.id) {
               <option [value]="player.id">{{ player.name }}</option>
             }
           </select>
         </div>
+        @if (feeForm.value.playerId === "multiple") {
+          <div class="join w-full border-2 border-white/5 rounded-md">
+            <button
+              class="join-item w-[50%] btn btn-ghost border-0 border-r border-white/5"
+              (click)="uncheckAllPlayers()"
+            >
+              Alle abwählen
+            </button>
+            <button
+              class="join-item w-[50%] btn btn-ghost border-0 border-l border-white/5"
+              (click)="checkAllPlayers()"
+            >
+              Alle auswählen
+            </button>
+          </div>
+          <div class="max-h-48 overflow-auto flex flex-wrap gap-y-2 p-2 border-2 border-white/5 rounded-md">
+            @for (player of players$ | async; track $index) {
+              <label class="max-w-[50%] flex-[50%] flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  (change)="toggleFeePlayerId(player.id)"
+                  [checked]="feePlayerIds.has(player.id)"
+                />
+                <span class="cursor-pointer text-ellipsis overflow-hidden text-nowrap pr-2">{{ player.name }}</span>
+              </label>
+            }
+          </div>
+        }
         <div class="form-control">
           <div class="flex gap-2">
             <div class="form-control flex-1">
