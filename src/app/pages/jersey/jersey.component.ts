@@ -5,7 +5,7 @@ import { Jersey, JerseySummary, Player } from '../../models/models';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { deleteField } from '@angular/fire/firestore';
+import { UtilService } from '../../services/util.service';
 
 @Component({
   selector: 'app-jersey',
@@ -19,7 +19,7 @@ export class JerseyComponent implements OnInit {
   jerseyForm = this.formBuilder.group({
     id: [''],
     playerId: ['', Validators.required],
-    date: [this.dateForInput(new Date())]
+    date: [this.utilService.dateForInput(new Date())]
   });
 
   jerseySummary$ = new Observable<JerseySummary[]>();
@@ -31,6 +31,7 @@ export class JerseyComponent implements OnInit {
   constructor(
     public fbService: FirebaseService,
     public authService: AuthService,
+    public utilService: UtilService,
     private formBuilder: NonNullableFormBuilder
   ) {
     this.players = toSignal(
@@ -71,7 +72,7 @@ export class JerseyComponent implements OnInit {
   editJersey(jersey: Jersey): void {
     this.jerseyForm.patchValue({
       ...jersey,
-      date: this.dateForInput(jersey.date)
+      date: this.utilService.dateForInput(jersey.date)
     });
     this.jerseyModal.nativeElement.showModal();
   }
@@ -91,9 +92,5 @@ export class JerseyComponent implements OnInit {
 
   increaseSummaryLength(): void {
     this.summaryLength$.next(this.summaryLength$.value + 5);
-  }
-
-  dateForInput(date: Date): string {
-    return date.toISOString().split('T')[0];
   }
 }

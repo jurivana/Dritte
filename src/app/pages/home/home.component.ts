@@ -7,6 +7,7 @@ import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 import html2canvas from 'html2canvas-pro';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
+import { UtilService } from '../../services/util.service';
 
 @Component({
   selector: 'app-home',
@@ -46,6 +47,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     public authService: AuthService,
     public fbService: FirebaseService,
+    public utilService: UtilService,
     private formBuilder: NonNullableFormBuilder
   ) {}
 
@@ -68,7 +70,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
     this.fbService.balance$.pipe(takeUntil(this.destroyed$)).subscribe(balance => (this.balance = balance));
 
-    const currDate = this.dateForInput(new Date());
+    const currDate = this.utilService.dateForInput(new Date());
     this.paymentForm = this.formBuilder.group({
       id: [''],
       title: ['', Validators.required],
@@ -238,7 +240,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   editPayment(payment: Payment): void {
     this.paymentForm.patchValue({
       ...payment,
-      date: this.dateForInput(payment.date),
+      date: this.utilService.dateForInput(payment.date),
       from: payment.createdFee || payment.paidFees?.length ? 'player' : 'misc'
     });
     this.paymentModal.nativeElement.showModal();
@@ -251,7 +253,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
     this.feeForm.patchValue({
       ...fee,
-      date: this.dateForInput(fee.date),
+      date: this.utilService.dateForInput(fee.date),
       punishment
     });
     this.feeModal.nativeElement.showModal();
@@ -394,11 +396,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.paymentLength$.next(this.paymentLength$.value + 10);
   }
 
-  select(event: FocusEvent): void {
-    const target = event.target as HTMLInputElement;
-    target.select();
-  }
-
   toggleFeePlayerId(playerId: string): void {
     if (!this.feePlayerIds.delete(playerId)) {
       this.feePlayerIds.add(playerId);
@@ -503,9 +500,5 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.summaryTable.nativeElement.style.width = 'inherit';
       this.summaryTable.nativeElement.style.maxWidth = 'inherit';
     });
-  }
-
-  dateForInput(date: Date): string {
-    return date.toISOString().split('T')[0];
   }
 }

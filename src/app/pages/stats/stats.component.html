@@ -225,7 +225,7 @@
             type="text"
             class="input input-bordered !outline-none"
             formControlName="comment"
-            (focus)="select($event)"
+            (focus)="utilService.select($event)"
           />
         } @else if (feeForm.value.type === "fine") {
           <select
@@ -248,7 +248,7 @@
             min="1"
             formControlName="quantity"
             (change)="updateValue()"
-            (focus)="select($event)"
+            (focus)="utilService.select($event)"
           />
         </div>
         <div class="form-control min-w-0 flex-1">
@@ -258,7 +258,7 @@
             class="input input-bordered !outline-none text-end"
             formControlName="value"
             [readOnly]="feeForm.value.type === 'fine'"
-            (focus)="select($event)"
+            (focus)="utilService.select($event)"
           />
         </div>
       </div>

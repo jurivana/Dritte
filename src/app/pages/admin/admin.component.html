@@ -3,6 +3,26 @@
     <div class="max-w-full w-[500px] join join-vertical my-4">
       <div class="join-item w-full flex bg-base-200 items-center pl-4 h-12">
         <span class="flex-1 font-bold">Aktive Spieler</span>
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" role="button" class="btn"><i class="fas fa-ellipsis-vertical"></i></div>
+          <ul
+            tabindex="0"
+            class="dropdown-content menu bg-base-100 rounded-md border-2 border-white/5 z-[1] w-64 p-2 shadow"
+          >
+            <li>
+              <a class="py-4" onclick="playerModal.showModal()">
+                <i class="fas fa-plus fa-fw"></i>
+                Spieler hinzufügen
+              </a>
+            </li>
+            <li>
+              <a class="py-4" onclick="newSeasonModal.showModal()">
+                <i class="fas fa-forward fa-fw"></i>
+                Neue Saison starten
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
       <table class="table table-zebra table-fixed join-item">
         <tbody>
@@ -36,3 +56,91 @@
     </div>
   </div>
 }
+
+<!-- ? SPIELER-DIALOG -->
+<dialog #playerModal id="playerModal" class="modal" (close)="resetPlayerForm()">
+  <div class="modal-box">
+    <div class="flex items-center mb-4">
+      <h3 class="text-lg font-bold flex-1">Spieler {{ playerForm.value.id ? "bearbeiten" : "hinzufügen" }}</h3>
+    </div>
+    <form class="flex flex-col gap-2" [formGroup]="playerForm">
+      <div class="flex flex-col">
+        <label class="label"><span class="label-text">Spielername</span></label>
+        <input
+          type="text"
+          class="input input-bordered !outline-none"
+          formControlName="name"
+          (focus)="utilService.select($event)"
+        />
+      </div>
+      <div class="flex flex-col">
+        <label class="label"><span class="label-text">WhatsApp-Name</span></label>
+        <input
+          type="text"
+          class="input input-bordered !outline-none"
+          formControlName="whatsAppName"
+          (focus)="utilService.select($event)"
+        />
+      </div>
+      <div class="flex mt-4">
+        <label class="max-w-[50%] flex-[50%] flex items-center gap-2">
+          <input type="checkbox" class="checkbox" formControlName="paid" />
+          <span class="cursor-pointer">Bezahlt</span>
+        </label>
+        <label class="max-w-[50%] flex-[50%] flex items-center gap-2">
+          <input type="checkbox" class="checkbox" formControlName="coach" />
+          <span class="cursor-pointer">Trainer</span>
+        </label>
+      </div>
+      <div class="flex flex-col">
+        <label class="label"><span class="label-text">Aktiv</span></label>
+        <div class="flex flex-wrap gap-y-2">
+          @for (season of seasons; track season) {
+            <label class="max-w-[50%] flex-[50%] flex items-center gap-2">
+              <input
+                type="checkbox"
+                class="checkbox"
+                [(ngModel)]="playerActive[season]"
+                [ngModelOptions]="{ standalone: true }"
+              />
+              <span class="cursor-pointer">20{{ season }}/{{ +season + 1 }}</span>
+            </label>
+          }
+        </div>
+      </div>
+    </form>
+    <div class="modal-action">
+      <form method="dialog" class="flex gap-2">
+        <button class="btn btn-ghost" (click)="resetPlayerForm()">Schließen</button>
+        <button class="btn" [disabled]="!playerForm.valid" (click)="savePlayer()">Speichern</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- ? NEUE-SAISON-DIALOG -->
+<dialog #newSeasonModal id="newSeasonModal" class="modal">
+  <div class="modal-box">
+    <div class="flex items-center mb-4">
+      <h3 class="text-lg font-bold flex-1">Neue Saison starten</h3>
+    </div>
+    <div class="flex flex-col gap-2">
+      <span>Soll die neue Saison wirklich gestartet werden?</span>
+      <span>Gib die neue Saison in das nachfolgende Feld ein:</span>
+      <input
+        type="text"
+        class="input input-bordered !outline-none mt-2 placeholder:opacity-50"
+        [(ngModel)]="newSeasonText"
+        [placeholder]="newSeasonTextValidator"
+      />
+    </div>
+    <div class="modal-action">
+      <form method="dialog" class="flex gap-2">
+        <button class="btn btn-ghost" (click)="newSeasonModal.close()">Schließen</button>
+        <button class="btn" [disabled]="newSeasonText() !== newSeasonTextValidator" (click)="startNewSeason()">
+          Starten
+        </button>
+      </form>
+    </div>
+  </div>
+</dialog>

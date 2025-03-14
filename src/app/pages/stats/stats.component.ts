@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Fee, FeeType, FeeTypeIcon, Player, PlayerSummary } from '../../models/models';
 import { AuthService } from '../../services/auth.service';
 import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
+import { UtilService } from '../../services/util.service';
 
 type FineSummary = {
   player: Player;
@@ -21,10 +22,10 @@ type PlayerFineSummary = {
 };
 
 @Component({
-    selector: 'app-stats',
-    templateUrl: './stats.component.html',
-    styleUrl: './stats.component.scss',
-    standalone: false
+  selector: 'app-stats',
+  templateUrl: './stats.component.html',
+  styleUrl: './stats.component.scss',
+  standalone: false
 })
 export class StatsComponent implements OnInit, OnDestroy {
   @ViewChild('feeModal') feeModal: ElementRef<HTMLDialogElement>;
@@ -58,6 +59,7 @@ export class StatsComponent implements OnInit, OnDestroy {
   constructor(
     public fbService: FirebaseService,
     public authService: AuthService,
+    public utilService: UtilService,
     private route: ActivatedRoute,
     private router: Router,
     private formBuilder: NonNullableFormBuilder
@@ -67,7 +69,7 @@ export class StatsComponent implements OnInit, OnDestroy {
     this.feeForm = this.formBuilder.group({
       id: ['', Validators.required],
       playerId: ['', Validators.required],
-      date: [this.dateForInput(new Date()), Validators.required],
+      date: [this.utilService.dateForInput(new Date()), Validators.required],
       type: ['fine', Validators.required],
       punishment: [''],
       comment: ['', Validators.required],
@@ -262,7 +264,7 @@ export class StatsComponent implements OnInit, OnDestroy {
     }
     this.feeForm.patchValue({
       ...fee,
-      date: this.dateForInput(fee.date),
+      date: this.utilService.dateForInput(fee.date),
       punishment
     });
     this.feeModal.nativeElement.showModal();
@@ -294,14 +296,5 @@ export class StatsComponent implements OnInit, OnDestroy {
   resetFeeForm(): void {
     this.feeForm.reset();
     this.feeModal.nativeElement.close();
-  }
-
-  select(event: FocusEvent): void {
-    const target = event.target as HTMLInputElement;
-    target.select();
-  }
-
-  dateForInput(date: Date): string {
-    return date.toISOString().split('T')[0];
   }
 }

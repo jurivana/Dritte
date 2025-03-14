@@ -15,7 +15,7 @@
       </thead>
       <tbody>
         @for (summary of jerseySummary$ | async; track $index) {
-          <tr class="hover active:!bg-[oklch(var(--b3))]">
+          <tr class="hover">
             <th class="pr-0">
               {{ summary.player.name }}
             </th>

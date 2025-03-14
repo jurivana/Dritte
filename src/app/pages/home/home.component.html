@@ -134,7 +134,10 @@
         @if (isAdmin) {
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn"><i class="fas fa-plus"></i></div>
-            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+            <ul
+              tabindex="0"
+              class="dropdown-content menu bg-base-100 rounded-md border-2 border-white/5 z-[1] w-52 p-2 shadow"
+            >
               <li>
                 <a class="py-4" onclick="feeModal.showModal()">
                   <i class="fas fa-gavel fa-fw"></i>
@@ -281,7 +284,7 @@
               class="input input-bordered !outline-none"
               formControlName="title"
               [readOnly]="paymentForm.value.id && paymentForm.value.from === 'player'"
-              (focus)="select($event)"
+              (focus)="utilService.select($event)"
             />
           } @else {
             <select class="select select-bordered !outline-none" formControlName="playerId" (change)="playerChanged()">
@@ -306,7 +309,7 @@
               class="input input-bordered !outline-none text-end"
               formControlName="value"
               [readOnly]="paymentForm.value.id && paymentForm.value.from === 'player'"
-              (focus)="select($event)"
+              (focus)="utilService.select($event)"
             />
           </div>
         </div>
@@ -396,7 +399,7 @@
               type="text"
               class="input input-bordered !outline-none"
               formControlName="comment"
-              (focus)="select($event)"
+              (focus)="utilService.select($event)"
             />
           } @else if (feeForm.value.type === "fine") {
             <select
@@ -419,7 +422,7 @@
               min="1"
               formControlName="quantity"
               (change)="updateValue()"
-              (focus)="select($event)"
+              (focus)="utilService.select($event)"
             />
           </div>
           <div class="form-control min-w-0 flex-1">
@@ -429,7 +432,7 @@
               class="input input-bordered !outline-none text-end"
               formControlName="value"
               [readOnly]="feeForm.value.type === 'fine'"
-              (focus)="select($event)"
+              (focus)="utilService.select($event)"
             />
           </div>
         </div>
@@ -494,7 +497,7 @@
             type="text"
             class="input input-bordered !outline-none"
             formControlName="name"
-            (focus)="select($event)"
+            (focus)="utilService.select($event)"
           />
         </div>
         <div class="form-control">
@@ -503,7 +506,7 @@
             type="number"
             class="input input-bordered !outline-none text-end"
             formControlName="value"
-            (focus)="select($event)"
+            (focus)="utilService.select($event)"
           />
         </div>
       </form>
