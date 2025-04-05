@@ -2,7 +2,9 @@ export type Values = {
   balance: number;
   cash: number;
   season: string;
+  deadline: any;
   lastDrink: any;
+  lastImport: any;
   drinkPrice: number;
 };
 

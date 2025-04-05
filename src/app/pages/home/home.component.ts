@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FirebaseService } from '../../services/firebase.service';
 import { AuthService } from '../../services/auth.service';
 import { BehaviorSubject, Observable, Subject, combineLatest, firstValueFrom, map, takeUntil } from 'rxjs';
@@ -21,6 +21,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   @ViewChild('punishmentModal') punishmentModal: ElementRef<HTMLDialogElement>;
   @ViewChild('closingModal') closingModal: ElementRef<HTMLDialogElement>;
   @ViewChild('summaryTable') summaryTable: ElementRef<HTMLDialogElement>;
+  @ViewChild('exportBtn') exportBtn: ElementRef<HTMLDialogElement>;
 
   players$: Observable<Player[]>;
 
@@ -70,12 +71,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
     this.fbService.balance$.pipe(takeUntil(this.destroyed$)).subscribe(balance => (this.balance = balance));
 
-    const currDate = this.utilService.dateForInput(new Date());
+    const today = new Date();
+    const currDateTime = this.utilService.dateTimeForInput(today);
     this.paymentForm = this.formBuilder.group({
       id: [''],
       title: ['', Validators.required],
       value: ['', [Validators.required, Validators.pattern(/-?\d+/)]],
-      date: [currDate, Validators.required],
+      date: [currDateTime, Validators.required],
       type: ['bank', Validators.required],
       from: ['player'],
       playerId: ['']
@@ -84,7 +86,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.feeForm = this.formBuilder.group({
       id: [''],
       playerId: ['', Validators.required],
-      date: [currDate, Validators.required],
+      date: [currDateTime, Validators.required],
       type: ['fine', Validators.required],
       punishment: [''],
       comment: ['', Validators.required],
@@ -98,8 +100,10 @@ export class HomeComponent implements OnInit, OnDestroy {
       value: ['', Validators.required]
     });
 
+    const deadline = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     this.closingForm = this.formBuilder.group({
-      date: [currDate, Validators.required],
+      date: [this.utilService.dateForInput(today), Validators.required],
+      deadline: [this.utilService.dateForInput(deadline), Validators.required],
       includeLateFee: [true, Validators.required],
       includeMonthlyFee: [true, Validators.required]
     });
@@ -121,7 +125,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async savePayment() {
-    const { id, date, type, title, from, value, playerId } = this.paymentForm.value;
+    let { id, date, type, title, from, value, playerId } = this.paymentForm.value;
     if (!(date && type && title && value)) {
       this.resetPaymentForm();
       return;
@@ -138,8 +142,11 @@ export class HomeComponent implements OnInit, OnDestroy {
       const paidFees: string[] = [];
       let createdFee = '';
       if (from === 'player') {
-        const openFees = this.fbService.fees.filter(fee => fee.playerId === playerId && !fee.paid);
+        if (value < 0) {
+          title = title.replace('Einzahlung', 'Auszahlung');
+        }
 
+        const openFees = this.fbService.fees.filter(fee => fee.playerId === playerId && !fee.paid);
         const creditFees = openFees.filter(fee => fee.value < 0);
         let remainingValue = value;
         for (const fee of creditFees) {
@@ -157,11 +164,11 @@ export class HomeComponent implements OnInit, OnDestroy {
           }
         }
 
-        if (remainingValue > 0) {
+        if (remainingValue !== 0) {
           const feeDocument = await this.fbService.addFee({
             playerId,
             type: 'misc',
-            comment: 'Überschuss Einzahlung',
+            comment: `Überschuss ${remainingValue > 0 ? 'Einzahlung' : 'Auszahlung'}`,
             quantity: 1,
             value: -remainingValue,
             date: new Date(date),
@@ -240,7 +247,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   editPayment(payment: Payment): void {
     this.paymentForm.patchValue({
       ...payment,
-      date: this.utilService.dateForInput(payment.date),
+      date: this.utilService.dateTimeForInput(payment.date),
       from: payment.createdFee || payment.paidFees?.length ? 'player' : 'misc'
     });
     this.paymentModal.nativeElement.showModal();
@@ -253,7 +260,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
     this.feeForm.patchValue({
       ...fee,
-      date: this.utilService.dateForInput(fee.date),
+      date: this.utilService.dateTimeForInput(fee.date),
       punishment
     });
     this.feeModal.nativeElement.showModal();
@@ -329,6 +336,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   startClosing(): void {
     const date = new Date(this.closingForm.value.date);
     const latePunishment = this.fbService.punishments.find(p => p.name === 'Zu spät bezahlt')!;
+    this.fbService.updateValues({ deadline: new Date(this.closingForm.value.deadline) });
     for (const summary of this.fbService.playerSummary) {
       if (this.closingForm.value.includeLateFee && summary.total > 0 && !summary.player.paid) {
         this.fbService.addFee({
@@ -414,6 +422,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!text) {
         return;
       }
+      this.fbService.updateValues({ lastImport: new Date() });
 
       const oldLastDrink = this.fbService.values.lastDrink.toDate();
       let updatedLastDrink = false;
@@ -479,6 +488,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async exportSummary(): Promise<void> {
+    this.exportBtn.nativeElement.style.display = 'none';
     this.summaryTable.nativeElement.style.width = '700px';
     this.summaryTable.nativeElement.style.maxWidth = 'none';
 
@@ -497,8 +507,9 @@ export class HomeComponent implements OnInit, OnDestroy {
           saveAs(blob, 'Mannschaftskasse Dritte.png');
         }
       }
-      this.summaryTable.nativeElement.style.width = 'inherit';
-      this.summaryTable.nativeElement.style.maxWidth = 'inherit';
+      this.summaryTable.nativeElement.style.width = '800px';
+      this.summaryTable.nativeElement.style.maxWidth = '100%';
+      this.exportBtn.nativeElement.style.display = 'flex';
     });
   }
 }

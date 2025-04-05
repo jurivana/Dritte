@@ -69,7 +69,7 @@ export class StatsComponent implements OnInit, OnDestroy {
     this.feeForm = this.formBuilder.group({
       id: ['', Validators.required],
       playerId: ['', Validators.required],
-      date: [this.utilService.dateForInput(new Date()), Validators.required],
+      date: [this.utilService.dateTimeForInput(new Date()), Validators.required],
       type: ['fine', Validators.required],
       punishment: [''],
       comment: ['', Validators.required],
@@ -264,7 +264,7 @@ export class StatsComponent implements OnInit, OnDestroy {
     }
     this.feeForm.patchValue({
       ...fee,
-      date: this.utilService.dateForInput(fee.date),
+      date: this.utilService.dateTimeForInput(fee.date),
       punishment
     });
     this.feeModal.nativeElement.showModal();

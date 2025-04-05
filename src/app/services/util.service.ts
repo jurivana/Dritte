@@ -12,6 +12,14 @@ export class UtilService {
   }
 
   dateForInput(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return this.dateInTimezone(date).toISOString().slice(0, 10);
+  }
+
+  dateTimeForInput(date: Date): string {
+    return this.dateInTimezone(date).toISOString().slice(0, 16);
+  }
+
+  dateInTimezone(date: Date): Date {
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   }
 }

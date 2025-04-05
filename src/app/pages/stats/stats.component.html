@@ -217,7 +217,11 @@
           </div>
           <div class="form-control flex-1">
             <label class="label"><span class="label-text">Datum</span></label>
-            <input type="date" class="input input-bordered !outline-none text-sm w-full" formControlName="date" />
+            <input
+              type="datetime-local"
+              class="input input-bordered !outline-none text-sm w-full"
+              formControlName="date"
+            />
           </div>
         </div>
         @if (feeForm.value.type === "misc") {
