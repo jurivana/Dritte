@@ -85,7 +85,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.feeForm = this.formBuilder.group({
       id: [''],
-      playerId: ['', Validators.required],
+      playerId: [''],
       date: [currDateTime, Validators.required],
       type: ['fine', Validators.required],
       punishment: [''],
@@ -198,7 +198,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   saveFee() {
     const { id, playerId, date, type, comment, quantity, value } = this.feeForm.value;
-    if (!(playerId && date && type && comment && quantity && value)) {
+    if (!(date && type && comment && quantity && value)) {
       this.resetFeeForm();
       return;
     }
@@ -223,12 +223,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         season: this.fbService.values.season,
         paid: false
       };
-      if (playerId === 'multiple') {
-        for (const playerId of this.feePlayerIds) {
-          this.fbService.addFee({ ...fee, playerId });
-        }
-      } else {
-        this.fbService.addFee(fee);
+      for (const playerId of this.feePlayerIds) {
+        this.fbService.addFee({ ...fee, playerId });
       }
     }
 

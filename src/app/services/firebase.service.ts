@@ -85,7 +85,7 @@ export class FirebaseService {
           date: jersey.date?.toDate(),
           playerName: players.find(player => player.id === jersey.playerId)?.name
         }))
-        .sort((a, b) => b.date - a.date);
+        .sort((a, b) => (b.date ?? new Date()) - (a.date ?? new Date()));
       this.jerseys$.next(this.jerseys);
 
       const jerseySummaryMap: { [playerId: string]: JerseySummary } = {};
